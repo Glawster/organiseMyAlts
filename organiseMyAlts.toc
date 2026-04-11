@@ -1,0 +1,10 @@
+## Interface: 110000
+## Title: organiseMyAlts
+## Notes: Solo weekly planner for alts (Delves, Prey, Crafting)
+## Author: Glawster
+## Version: 0.1.0
+## SavedVariables: organiseMyAltsDB
+
+core/init.lua
+core/logger.lua
+data/characters.lua
