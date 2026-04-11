@@ -1,4 +1,4 @@
-## Interface: 110000
+## Interface: 120001
 ## Title: organiseMyAlts
 ## Notes: Solo weekly planner for alts (Delves, Prey, Crafting)
 ## Author: Glawster
