@@ -43,14 +43,60 @@ function oma:getCurrentSpecInfo()
 end
 
 function oma:getCurrentProfessions()
-    local professions = {}
+    local professions = {
+        primary1 = nil,
+        primary2 = nil,
+        cooking = nil,
+        fishing = nil,
+        archaeology = nil,
+        all = {},
+    }
 
-    local profession1, profession2, archaeology, fishing, cooking = GetProfessions()
-    professions.primary1 = getProfessionName(profession1)
-    professions.primary2 = getProfessionName(profession2)
-    professions.archaeology = getProfessionName(archaeology)
-    professions.fishing = getProfessionName(fishing)
-    professions.cooking = getProfessionName(cooking)
+    if not C_TradeSkillUI or not C_TradeSkillUI.GetChildProfessionInfos then
+        return professions
+    end
+
+    local infos = C_TradeSkillUI.GetChildProfessionInfos()
+    if not infos then
+        return professions
+    end
+
+    local primaryCount = 0
+
+    for _, info in ipairs(infos) do
+        local entry = {
+            profession = info.profession,
+            professionID = info.professionID,
+            professionName = info.professionName,
+            skillLevel = info.skillLevel,
+            maxSkillLevel = info.maxSkillLevel,
+            skillModifier = info.skillModifier,
+            isPrimaryProfession = info.isPrimaryProfession,
+            parentProfessionID = info.parentProfessionID,
+            parentProfessionName = info.parentProfessionName,
+        }
+
+        table.insert(professions.all, entry)
+
+        if info.isPrimaryProfession then
+            primaryCount = primaryCount + 1
+            if primaryCount == 1 then
+                professions.primary1 = entry
+            elseif primaryCount == 2 then
+                professions.primary2 = entry
+            end
+        else
+            local name = (info.professionName or ""):lower()
+
+            if name == "cooking" then
+                professions.cooking = entry
+            elseif name == "fishing" then
+                professions.fishing = entry
+            elseif name == "archaeology" then
+                professions.archaeology = entry
+            end
+        end
+    end
 
     return professions
 end
@@ -83,6 +129,7 @@ end
 
 function oma:scanCurrentCharacter()
     local characterKey = self:getCurrentCharacterKey()
+    self:printSection("scan...")
     if not characterKey then
         self:print("unable to identify current character")
         return
@@ -112,6 +159,7 @@ end
 
 function oma:printCurrentCharacterSummary()
     local characterKey = self:getCurrentCharacterKey()
+    self:printSection("this character...")
     if not characterKey then
         self:print("unable to identify current character")
         return
@@ -130,7 +178,22 @@ function oma:printCurrentCharacterSummary()
     self:print("equipped ilvl:", character.equippedItemLevel or "unknown")
     self:print("average ilvl:", character.averageItemLevel or "unknown")
 
-    local p1 = character.professions and character.professions.primary1 or "none"
-    local p2 = character.professions and character.professions.primary2 or "none"
-    self:print("professions:", p1, "/", p2)
+    local function professionLabel(profession)
+        if not profession then
+            return "none"
+        end
+
+        local name = profession.professionName or "unknown"
+        local skill = profession.skillLevel or 0
+        local maxSkill = profession.maxSkillLevel or 0
+
+        return string.format("%s (%d/%d)", name, skill, maxSkill)
+    end
+
+    local p1 = character.professions and character.professions.primary1
+    local p2 = character.professions and character.professions.primary2
+
+    self:print("professions:")
+    self:print("  ", professionLabel(p1))
+    self:print("  ", professionLabel(p2))
 end

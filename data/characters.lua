@@ -29,6 +29,7 @@ end
 
 function oma:printCharacters()
     local foundAny = false
+    self:printSection("all characters...")
 
     for key, char in pairs(self.db.characters) do
         foundAny = true
