@@ -8,3 +8,5 @@
 core/init.lua
 core/logger.lua
 data/characters.lua
+data/resets.lua
+data/tasks.lua
