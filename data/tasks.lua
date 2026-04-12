@@ -7,6 +7,11 @@ local priorityWeight = {
     low = 1,
 }
 
+local function createUniqueTaskId(prefix)
+    local randomPart = math.random(1000, 9999)
+    return string.format("%s_%d_%d", prefix, time(), randomPart)
+end
+
 function oma:ensureTemplateTasks()
     local charKey = self:getCurrentCharacterKey()
     if not charKey then
@@ -24,7 +29,7 @@ function oma:ensureTemplateTasks()
         end
 
         if not exists then
-            local id = template.key .. "_" .. charKey
+            local id = string.format("%s_%s", template.key, charKey)
 
             self.db.tasks[id] = {
                 id = id,
@@ -45,19 +50,20 @@ function oma:ensureTemplateTasks()
 end
 
 function oma:createTask(name, resetType)
-    local key = self:getCurrentCharacterKey()
-    if not key then
+    local charKey = self:getCurrentCharacterKey()
+    if not charKey then
         self:print("unable to identify current character")
         return
     end
 
-    local id = name:gsub("%s+", "_"):lower() .. "_" .. time()
+    local prefix = resetType == "weekly" and "custom_weekly" or "custom_daily"
+    local id = createUniqueTaskId(prefix)
 
     self.db.tasks[id] = {
         id = id,
         name = name,
         category = "custom",
-        character = key,
+        character = charKey,
         resetType = resetType,
         priority = resetType == "weekly" and "high" or "medium",
         completed = false,
@@ -94,16 +100,48 @@ function oma:markTaskIncomplete(taskId)
     self:print("task reset:", task.name)
 end
 
+function oma:markTaskByVisibleIndex(indexText, shouldComplete)
+    if indexText == "" then
+        if shouldComplete then
+            self:print("usage: /oma done <number>")
+        else
+            self:print("usage: /oma undo <number>")
+        end
+        return
+    end
+
+    local index = tonumber(indexText)
+    if not index then
+        self:print("invalid selection:", indexText)
+        return
+    end
+
+    local taskId = self.lastNextTaskIds and self.lastNextTaskIds[index]
+    if not taskId then
+        self:print("no task found for selection:", index)
+        self:print("run /oma next first")
+        return
+    end
+
+    if shouldComplete then
+        self:markTaskComplete(taskId)
+    else
+        self:markTaskIncomplete(taskId)
+    end
+
+    self:printNextTasks()
+end
+
 function oma:getTasksForCurrentCharacter()
-    local key = self:getCurrentCharacterKey()
+    local charKey = self:getCurrentCharacterKey()
     local result = {}
 
-    if not key then
+    if not charKey then
         return result
     end
 
     for _, task in pairs(self.db.tasks) do
-        if task.character == key then
+        if task.character == charKey then
             table.insert(result, task)
         end
     end
@@ -158,12 +196,15 @@ function oma:printNextTasks()
     local tasks = self:getTasksForCurrentCharacter()
 
     self:printSection("next steps...")
+    self.lastNextTaskIds = {}
 
     local shown = 0
 
     for _, task in ipairs(tasks) do
         if not task.completed then
             shown = shown + 1
+            self.lastNextTaskIds[shown] = task.id
+
             self:print(
                 string.format(
                     "%d. %s (%s)",
