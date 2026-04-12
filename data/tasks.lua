@@ -205,14 +205,15 @@ function oma:printNextTasks()
             shown = shown + 1
             self.lastNextTaskIds[shown] = task.id
 
-            self:print(
-                string.format(
-                    "%d. %s (%s)",
-                    shown,
-                    task.name,
-                    task.priority or "low"
-                )
-            )
+            self:print(string.format("%d. %s (%s)", shown, task.name, task.priority or "low"))
+
+            if task.locationHint then
+                self:print("   where:", task.locationHint)
+            end
+
+            if task.pickupHint then
+                self:print("   how:", task.pickupHint)
+            end
 
             if shown >= 3 then
                 break
