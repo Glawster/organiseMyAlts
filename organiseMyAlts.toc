@@ -11,3 +11,4 @@ data/characters.lua
 data/characterScan.lua
 data/resets.lua
 data/tasks.lua
+data/taskTemplates.lua

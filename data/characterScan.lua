@@ -19,17 +19,16 @@ local equipmentSlots = {
     { key = "OFFHAND", slotId = INVSLOT_OFFHAND },
 }
 
-local function getProfessionName(skillLine)
-    if not skillLine then
-        return nil
+local function professionLabel(profession)
+    if not profession then
+        return "none"
     end
 
-    local professionInfo = C_TradeSkillUI and C_TradeSkillUI.GetProfessionInfoBySkillLineID and C_TradeSkillUI.GetProfessionInfoBySkillLineID(skillLine)
-    if professionInfo and professionInfo.professionName then
-        return professionInfo.professionName
-    end
+    local name = profession.name or profession.professionName or "unknown"
+    local skillLevel = profession.skillLevel or 0
+    local maxSkillLevel = profession.maxSkillLevel or 0
 
-    return tostring(skillLine)
+    return string.format("%s (%d/%d)", name, skillLevel, maxSkillLevel)
 end
 
 function oma:getCurrentSpecInfo()
@@ -46,55 +45,42 @@ function oma:getCurrentProfessions()
     local professions = {
         primary1 = nil,
         primary2 = nil,
-        cooking = nil,
-        fishing = nil,
         archaeology = nil,
+        fishing = nil,
+        cooking = nil,
         all = {},
     }
 
-    if not C_TradeSkillUI or not C_TradeSkillUI.GetChildProfessionInfos then
-        return professions
-    end
+    local profession1, profession2, archaeology, fishing, cooking = GetProfessions()
+    local indices = {
+        primary1 = profession1,
+        primary2 = profession2,
+        archaeology = archaeology,
+        fishing = fishing,
+        cooking = cooking,
+    }
 
-    local infos = C_TradeSkillUI.GetChildProfessionInfos()
-    if not infos then
-        return professions
-    end
+    for key, index in pairs(indices) do
+        if index then
+            local name, icon, skillLevel, maxSkillLevel, numAbilities, spellOffset, skillLine, skillModifier, specializationIndex, specializationOffset, skillLineName = GetProfessionInfo(index)
 
-    local primaryCount = 0
+            local entry = {
+                index = index,
+                name = name,
+                icon = icon,
+                skillLevel = skillLevel,
+                maxSkillLevel = maxSkillLevel,
+                numAbilities = numAbilities,
+                spellOffset = spellOffset,
+                skillLine = skillLine,
+                skillModifier = skillModifier,
+                specializationIndex = specializationIndex,
+                specializationOffset = specializationOffset,
+                skillLineName = skillLineName,
+            }
 
-    for _, info in ipairs(infos) do
-        local entry = {
-            profession = info.profession,
-            professionID = info.professionID,
-            professionName = info.professionName,
-            skillLevel = info.skillLevel,
-            maxSkillLevel = info.maxSkillLevel,
-            skillModifier = info.skillModifier,
-            isPrimaryProfession = info.isPrimaryProfession,
-            parentProfessionID = info.parentProfessionID,
-            parentProfessionName = info.parentProfessionName,
-        }
-
-        table.insert(professions.all, entry)
-
-        if info.isPrimaryProfession then
-            primaryCount = primaryCount + 1
-            if primaryCount == 1 then
-                professions.primary1 = entry
-            elseif primaryCount == 2 then
-                professions.primary2 = entry
-            end
-        else
-            local name = (info.professionName or ""):lower()
-
-            if name == "cooking" then
-                professions.cooking = entry
-            elseif name == "fishing" then
-                professions.fishing = entry
-            elseif name == "archaeology" then
-                professions.archaeology = entry
-            end
+            professions[key] = entry
+            table.insert(professions.all, entry)
         end
     end
 
@@ -130,6 +116,7 @@ end
 function oma:scanCurrentCharacter()
     local characterKey = self:getCurrentCharacterKey()
     self:printSection("scan...")
+
     if not characterKey then
         self:print("unable to identify current character")
         return
@@ -154,12 +141,17 @@ function oma:scanCurrentCharacter()
 
     self.db.characters[characterKey] = character
 
+    local p1 = character.professions and character.professions.primary1 or nil
+    local p2 = character.professions and character.professions.primary2 or nil
+
+    self:print("profession scan:", professionLabel(p1), "/", professionLabel(p2))
     self:print("scan complete:", characterKey)
 end
 
 function oma:printCurrentCharacterSummary()
     local characterKey = self:getCurrentCharacterKey()
     self:printSection("this character...")
+
     if not characterKey then
         self:print("unable to identify current character")
         return
@@ -178,20 +170,8 @@ function oma:printCurrentCharacterSummary()
     self:print("equipped ilvl:", character.equippedItemLevel or "unknown")
     self:print("average ilvl:", character.averageItemLevel or "unknown")
 
-    local function professionLabel(profession)
-        if not profession then
-            return "none"
-        end
-
-        local name = profession.professionName or "unknown"
-        local skill = profession.skillLevel or 0
-        local maxSkill = profession.maxSkillLevel or 0
-
-        return string.format("%s (%d/%d)", name, skill, maxSkill)
-    end
-
-    local p1 = character.professions and character.professions.primary1
-    local p2 = character.professions and character.professions.primary2
+    local p1 = character.professions and character.professions.primary1 or nil
+    local p2 = character.professions and character.professions.primary2 or nil
 
     self:print("professions:")
     self:print("  ", professionLabel(p1))

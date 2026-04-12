@@ -40,6 +40,7 @@ function oma:PLAYER_LOGIN()
     self:scanCurrentCharacter()
     self:initialiseResets()
     self:refreshTaskResets()
+    self:ensureTemplateTasks()
     self:print("loaded")
 end
 
