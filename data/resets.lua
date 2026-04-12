@@ -13,6 +13,7 @@ function oma:refreshTaskResets()
         for _, task in pairs(self.db.tasks) do
             if task.resetType == "daily" then
                 task.completed = false
+                task.completedAt = nil
             end
         end
         self.db.resets.daily = newDaily
@@ -22,6 +23,7 @@ function oma:refreshTaskResets()
         for _, task in pairs(self.db.tasks) do
             if task.resetType == "weekly" then
                 task.completed = false
+                task.completedAt = nil
             end
         end
         self.db.resets.weekly = newWeekly
