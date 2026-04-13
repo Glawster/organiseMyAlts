@@ -57,12 +57,34 @@ SlashCmdList["ORGANISEMYALTS"] = function(msg)
     oma:handleSlash(msg or "")
 end
 
+function oma:printHelp()
+    self:printSection("commands...")
+
+    self:print("/oma chars     - list characters")
+    self:print("/oma char      - current character summary")
+    self:print("/oma tasks     - list tasks")
+    self:print("/oma next      - next recommended tasks")
+    self:print("/oma scan      - rescan current character")
+
+    self:print("/oma done <n>  - complete task from next list")
+    self:print("/oma undo <n>  - undo task from next list")
+
+    self:print("/oma daily     - add custom daily task")
+    self:print("/oma weekly    - add custom weekly task")
+
+    self:print("/oma alts      - show alt rankings")
+    self:print("/oma best      - best alt to play")
+
+    self:print("/oma debug     - toggle debug logging")
+    self:print("/oma logs      - show recent logs")
+end
+
 function oma:handleSlash(msg)
     local command, rest = msg:match("^(%S+)%s*(.-)$")
     command = command and string.lower(command) or ""
 
     if command == "" or command == "help" then
-        self:print("commands: /oma chars | char | tasks | next | scan | done <number> | undo <number> | adddaily <name> | addweekly <name>")
+        self:printHelp()
 
     elseif command == "chars" then
         self:printCharacters()
@@ -86,16 +108,16 @@ function oma:handleSlash(msg)
     elseif command == "undo" then
         self:markTaskByVisibleIndex(rest, false)
 
-    elseif command == "adddaily" then
+    elseif command == "daily" then
         if rest == "" then
-            self:print("usage: /oma adddaily <name>")
+            self:print("usage: /oma daily <name>")
         else
             self:createTask(rest, "daily")
         end
 
-    elseif command == "addweekly" then
+    elseif command == "weekly" then
         if rest == "" then
-            self:print("usage: /oma addweekly <name>")
+            self:print("usage: /oma weekly <name>")
         else
             self:createTask(rest, "weekly")
         end
@@ -122,6 +144,6 @@ function oma:handleSlash(msg)
         end
 
     else
-        self:print("commands: /oma chars | char | tasks | next | scan | done <number> | undo <number> | adddaily <name> | addweekly <name> | alts | best")
+        self:printHelp()
     end
 end
