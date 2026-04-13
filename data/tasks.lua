@@ -116,10 +116,38 @@ function oma:markTaskByVisibleIndex(indexText, shouldComplete)
         return
     end
 
-    local taskId = self.lastNextTaskIds and self.lastNextTaskIds[index]
+    function oma:markTaskByVisibleIndex(indexText, shouldComplete)
+    if indexText == "" then
+        if shouldComplete then
+            self:print("usage: /oma done <number>")
+        else
+            self:print("usage: /oma undo <number>")
+        end
+        return
+    end
+
+    local index = tonumber(indexText)
+    if not index then
+        self:print("invalid selection:", indexText)
+        return
+    end
+
+    local tasks = self:getTasksForCurrentCharacter()
+    local visibleTaskIds = {}
+
+    for _, task in ipairs(tasks) do
+        if not task.completed then
+            table.insert(visibleTaskIds, task.id)
+            if #visibleTaskIds >= 3 then
+                break
+            end
+        end
+    end
+
+    local taskId = visibleTaskIds[index]
     if not taskId then
         self:print("no task found for selection:", index)
-        self:print("run /oma next first")
+        self:print("run /oma next to view the current numbered list")
         return
     end
 
