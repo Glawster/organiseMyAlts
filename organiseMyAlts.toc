@@ -12,3 +12,4 @@ data/characterScan.lua
 data/resets.lua
 data/tasks.lua
 data/taskTemplates.lua
+engine/altScoring.lua

@@ -99,7 +99,13 @@ function oma:handleSlash(msg)
             self:createTask(rest, "weekly")
         end
 
+    elseif command == "alts" then
+        self:printAltScores()
+    
+    elseif command == "best" then
+        self:printBestAlt()
+
     else
-        self:print("commands: /oma chars | char | tasks | next | scan | done <number> | undo <number> | adddaily <name> | addweekly <name>")
+        self:print("commands: /oma chars | char | tasks | next | scan | done <number> | undo <number> | adddaily <name> | addweekly <name> | alts | best")
     end
 end
