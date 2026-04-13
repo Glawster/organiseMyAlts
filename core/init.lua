@@ -62,12 +62,12 @@ function oma:printHelp()
 
     self:print("/oma chars     - list characters")
     self:print("/oma char      - current character summary")
-    self:print("/oma tasks     - list tasks")
-    self:print("/oma next      - next recommended tasks")
+    self:print("/oma tasks     - list all numbered tasks")
+    self:print("/oma next      - show top numbered tasks")
     self:print("/oma scan      - rescan current character")
 
-    self:print("/oma done <n>  - complete task from next list")
-    self:print("/oma undo <n>  - undo task from next list")
+    self:print("/oma done <n>  - complete numbered task")
+    self:print("/oma undo <n>  - undo numbered task")
 
     self:print("/oma daily     - add custom daily task")
     self:print("/oma weekly    - add custom weekly task")

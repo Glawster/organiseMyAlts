@@ -102,50 +102,6 @@ function oma:markTaskIncomplete(taskId)
     self:print("task reset:", task.name)
 end
 
-function oma:markTaskByVisibleIndex(indexText, shouldComplete)
-    if indexText == "" then
-        if shouldComplete then
-            self:print("usage: /oma done <number>")
-        else
-            self:print("usage: /oma undo <number>")
-        end
-        return
-    end
-
-    local index = tonumber(indexText)
-    if not index then
-        self:print("invalid selection:", indexText)
-        return
-    end
-
-    local tasks = self:getTasksForCurrentCharacter()
-    local visibleTaskIds = {}
-
-    for _, task in ipairs(tasks) do
-        if not task.completed then
-            table.insert(visibleTaskIds, task.id)
-            if #visibleTaskIds >= 3 then
-                break
-            end
-        end
-    end
-
-    local taskId = visibleTaskIds[index]
-    if not taskId then
-        self:print("no task found for selection:", index)
-        self:print("run /oma next to view the current numbered list")
-        return
-    end
-
-    if shouldComplete then
-        self:markTaskComplete(taskId)
-    else
-        self:markTaskIncomplete(taskId)
-    end
-
-    self:printNextTasks()
-end
-
 function oma:getTasksForCurrentCharacter()
     local charKey = self:getCurrentCharacterKey()
     local result = {}
@@ -182,8 +138,59 @@ function oma:getTasksForCurrentCharacter()
     return result
 end
 
-function oma:printTasksForCurrentCharacter()
+function oma:getVisibleTasksForCurrentCharacter(limit, includeCompleted)
     local tasks = self:getTasksForCurrentCharacter()
+    local visibleTasks = {}
+
+    for _, task in ipairs(tasks) do
+        if includeCompleted or not task.completed then
+            table.insert(visibleTasks, task)
+
+            if limit and #visibleTasks >= limit then
+                break
+            end
+        end
+    end
+
+    return visibleTasks
+end
+
+function oma:markTaskByVisibleIndex(indexText, shouldComplete)
+    if indexText == "" then
+        if shouldComplete then
+            self:print("usage: /oma done <number>")
+        else
+            self:print("usage: /oma undo <number>")
+        end
+        return
+    end
+
+    local index = tonumber(indexText)
+    if not index then
+        self:print("invalid selection:", indexText)
+        return
+    end
+
+    local visibleTasks = self:getVisibleTasksForCurrentCharacter(nil, true)
+    local task = visibleTasks[index]
+
+    if not task then
+        self:print("no task found for selection:", index)
+        self:print("run /oma tasks to see numbered tasks")
+        return
+    end
+
+    if shouldComplete then
+        self:markTaskComplete(task.id)
+    else
+        self:markTaskIncomplete(task.id)
+    end
+
+    self:printTasksForCurrentCharacter()
+end
+
+function oma:printTasksForCurrentCharacter()
+    local tasks = self:getVisibleTasksForCurrentCharacter(nil, true)
 
     self:printSection("tasks...")
 
@@ -192,50 +199,56 @@ function oma:printTasksForCurrentCharacter()
         return
     end
 
-    for _, task in ipairs(tasks) do
+    for index, task in ipairs(tasks) do
         self:print(
             string.format(
-                "[%s] %s (%s, %s) id=%s",
+                "%d. [%s] %s (%s, %s)",
+                index,
                 task.completed and "done" or "todo",
                 task.name,
                 task.resetType or "unknown",
-                task.priority or "low",
-                task.id or "unknown"
+                task.priority or "low"
             )
         )
+
+        if task.locationHint then
+            self:print("   where:", task.locationHint)
+        end
+
+        if task.pickupHint then
+            self:print("   how:", task.pickupHint)
+        end
     end
 end
 
 function oma:printNextTasks()
-    local tasks = self:getTasksForCurrentCharacter()
+    local tasks = self:getVisibleTasksForCurrentCharacter(3, false)
 
     self:printSection("next steps...")
-    self.lastNextTaskIds = {}
 
-    local shown = 0
-
-    for _, task in ipairs(tasks) do
-        if not task.completed then
-            shown = shown + 1
-            self.lastNextTaskIds[shown] = task.id
-
-            self:print(string.format("%d. %s (%s)", shown, task.name, task.priority or "low"))
-
-            if task.locationHint then
-                self:print("   where:", task.locationHint)
-            end
-
-            if task.pickupHint then
-                self:print("   how:", task.pickupHint)
-            end
-
-            if shown >= 3 then
-                break
-            end
-        end
+    if #tasks == 0 then
+        self:print("all tasks complete — switch alt?")
+        return
     end
 
-    if shown == 0 then
-        self:print("all tasks complete — switch alt?")
+    for index, task in ipairs(tasks) do
+        self:print(
+            string.format(
+                "%d. [%s] %s (%s, %s)",
+                index,
+                task.completed and "done" or "todo",
+                task.name,
+                task.resetType or "unknown",
+                task.priority or "low"
+            )
+        )
+
+        if task.locationHint then
+            self:print("   where:", task.locationHint)
+        end
+
+        if task.pickupHint then
+            self:print("   how:", task.pickupHint)
+        end
     end
 end
