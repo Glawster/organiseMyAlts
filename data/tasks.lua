@@ -41,6 +41,8 @@ function oma:ensureTemplateTasks()
                 completed = false,
                 completedAt = nil,
                 templateKey = template.key,
+                locationHint = template.locationHint,
+                pickupHint = template.pickupHint,
                 createdAt = time(),
             }
 
@@ -101,22 +103,6 @@ function oma:markTaskIncomplete(taskId)
 end
 
 function oma:markTaskByVisibleIndex(indexText, shouldComplete)
-    if indexText == "" then
-        if shouldComplete then
-            self:print("usage: /oma done <number>")
-        else
-            self:print("usage: /oma undo <number>")
-        end
-        return
-    end
-
-    local index = tonumber(indexText)
-    if not index then
-        self:print("invalid selection:", indexText)
-        return
-    end
-
-    function oma:markTaskByVisibleIndex(indexText, shouldComplete)
     if indexText == "" then
         if shouldComplete then
             self:print("usage: /oma done <number>")
