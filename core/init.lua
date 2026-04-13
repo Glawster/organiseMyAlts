@@ -35,6 +35,7 @@ function oma:ADDON_LOADED(name)
     organiseMyAltsDB.uiState = organiseMyAltsDB.uiState or {}
 
     self.db = organiseMyAltsDB
+    organiseMyAltsDB.logs = organiseMyAltsDB.logs or {}
 end
 
 function oma:PLAYER_LOGIN()
@@ -104,6 +105,21 @@ function oma:handleSlash(msg)
     
     elseif command == "best" then
         self:printBestAlt()
+
+    elseif command == "debug" then
+        self.db.settings.debug = not self.db.settings.debug
+        self:print("debug logging:", self.db.settings.debug and "ON" or "OFF")
+
+    elseif command == "logs" then
+        self:printSection("recent logs...")
+
+        local logs = self.db.logs or {}
+        local start = math.max(1, #logs - 10)
+
+        for i = start, #logs do
+            local entry = logs[i]
+            self:print(entry.ts, entry.msg)
+        end
 
     else
         self:print("commands: /oma chars | char | tasks | next | scan | done <number> | undo <number> | adddaily <name> | addweekly <name> | alts | best")
