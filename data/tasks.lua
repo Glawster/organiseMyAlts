@@ -252,3 +252,60 @@ function oma:printNextTasks()
         end
     end
 end
+
+function oma:resetTasks(scope)
+    local currentCharKey = self:getCurrentCharacterKey()
+    local resetCount = 0
+
+    if scope == "all" then
+        for _, task in pairs(self.db.tasks or {}) do
+            task.completed = false
+            task.completedAt = nil
+            resetCount = resetCount + 1
+        end
+
+        self:printSection("reset...")
+        self:print("reset tasks for: all characters")
+        self:print("tasks reset:", resetCount)
+        return
+    end
+
+    if not currentCharKey then
+        self:print("unable to identify current character")
+        return
+    end
+
+    for _, task in pairs(self.db.tasks or {}) do
+        if task.character == currentCharKey then
+            task.completed = false
+            task.completedAt = nil
+            resetCount = resetCount + 1
+        end
+    end
+
+    self:printSection("reset...")
+    self:print("reset tasks for:", currentCharKey)
+    self:print("tasks reset:", resetCount)
+end
+
+function oma:resetTasksForCurrentCharacter()
+    local charKey = self:getCurrentCharacterKey()
+    if not charKey then
+        self:print("unable to identify current character")
+        return
+    end
+
+    local resetCount = 0
+
+    for _, task in pairs(self.db.tasks or {}) do
+        if task.character == charKey then
+            task.completed = false
+            task.completedAt = nil
+            resetCount = resetCount + 1
+        end
+    end
+
+    self:printSection("reset...")
+    self:print("reset tasks for:", charKey)
+    self:print("tasks reset:", resetCount)
+end

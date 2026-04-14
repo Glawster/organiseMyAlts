@@ -77,6 +77,9 @@ function oma:printHelp()
 
     self:print("/oma debug     - toggle debug logging")
     self:print("/oma logs      - show recent logs")
+
+    self:print("/oma reset     - reset task completion for current character")
+    self:print("/oma reset all - reset task completion for all characters")
 end
 
 function oma:handleSlash(msg)
@@ -142,6 +145,9 @@ function oma:handleSlash(msg)
             local entry = logs[i]
             self:print(entry.ts, entry.msg)
         end
+
+    elseif command == "reset" then
+        self:resetTasks(rest)
 
     else
         self:printHelp()
