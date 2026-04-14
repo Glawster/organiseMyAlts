@@ -151,6 +151,7 @@ function oma:scanCurrentCharacter()
     if p2 then
         professionCount = professionCount + 1
     end
+    local taskCount = #self:getTasksForCurrentCharacter()
 
     self:print("profession scan:", professionLabel(p1), "/", professionLabel(p2))
     self:print("scan complete:", characterKey)
@@ -160,7 +161,7 @@ function oma:scanCurrentCharacter()
             "event=scan.complete char=%s ilvl=%s tasks=%d professions=%d source=scanCurrentCharacter",
             characterKey,
             tostring(character.equippedItemLevel or "unknown"),
-            #self:getTasksForCurrentCharacter(),
+            taskCount,
             professionCount
         )
     )

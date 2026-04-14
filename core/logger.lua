@@ -17,10 +17,6 @@ function oma:printSection(title)
     print("|cff00ff98[organiseMyAlts]|r", "|cffffff00" .. title .. "|r")
 end
 
-local function now()
-    return date("%Y-%m-%d %H:%M:%S")
-end
-
 function oma:log(...)
     if not self.db then
         return
@@ -46,7 +42,7 @@ function oma:log(...)
     end
 
     table.insert(self.db.logs, {
-        ts = now(),
+        ts = date("%Y-%m-%d %H:%M:%S"),
         level = level,
         msg = msg,
     })
@@ -64,7 +60,7 @@ function oma:trimLogs()
 
     if #logs > MAX_LOG_ENTRIES then
         local excess = #logs - MAX_LOG_ENTRIES
-        local newSize = #logs - excess
+        local newSize = MAX_LOG_ENTRIES
 
         for i = 1, newSize do
             logs[i] = logs[i + excess]
