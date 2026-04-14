@@ -1,5 +1,6 @@
 local oma = organiseMyAlts
 
+-- Keep logs useful for debugging without growing SavedVariables indefinitely.
 local MAX_LOG_ENTRIES = 200
 local VALID_LEVELS = {
     DEBUG = true,
@@ -62,8 +63,14 @@ function oma:trimLogs()
 
     if #logs > MAX_LOG_ENTRIES then
         local excess = #logs - MAX_LOG_ENTRIES
-        for _ = 1, excess do
-            table.remove(logs, 1)
+        local newSize = #logs - excess
+
+        for i = 1, newSize do
+            logs[i] = logs[i + excess]
+        end
+
+        for i = #logs, newSize + 1, -1 do
+            logs[i] = nil
         end
     end
 end

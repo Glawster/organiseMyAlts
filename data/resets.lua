@@ -43,7 +43,7 @@ function oma:refreshTaskResets()
         self:log(
             "INFO",
             string.format(
-                "event=tasks.reset period=daily previous=%s current=%s reset_count=%d previously_completed=%d source=system_rollover",
+                "event=tasks.reset period=daily previous=%s current=%s reset_count=%d completed_before_reset=%d source=system_rollover",
                 previousDaily,
                 currentDaily,
                 resetCount,
@@ -75,7 +75,7 @@ function oma:refreshTaskResets()
         self:log(
             "INFO",
             string.format(
-                "event=tasks.reset period=weekly previous=%s current=%s reset_count=%d previously_completed=%d source=system_rollover",
+                "event=tasks.reset period=weekly previous=%s current=%s reset_count=%d completed_before_reset=%d source=system_rollover",
                 previousWeekly,
                 currentWeekly,
                 resetCount,
