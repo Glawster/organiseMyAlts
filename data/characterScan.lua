@@ -119,6 +119,7 @@ function oma:scanCurrentCharacter()
 
     if not characterKey then
         self:print("unable to identify current character")
+        self:log("ERROR", "event=scan.failed reason=missing_character source=scanCurrentCharacter")
         return
     end
 
@@ -143,9 +144,26 @@ function oma:scanCurrentCharacter()
 
     local p1 = character.professions and character.professions.primary1 or nil
     local p2 = character.professions and character.professions.primary2 or nil
+    local professionCount = 0
+    if p1 then
+        professionCount = professionCount + 1
+    end
+    if p2 then
+        professionCount = professionCount + 1
+    end
 
     self:print("profession scan:", professionLabel(p1), "/", professionLabel(p2))
     self:print("scan complete:", characterKey)
+    self:log(
+        "INFO",
+        string.format(
+            "event=scan.complete char=%s ilvl=%s tasks=%d professions=%d source=scanCurrentCharacter",
+            characterKey,
+            tostring(character.equippedItemLevel or "unknown"),
+            #self:getTasksForCurrentCharacter(),
+            professionCount
+        )
+    )
 end
 
 function oma:printCurrentCharacterSummary()
