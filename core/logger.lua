@@ -28,17 +28,18 @@ function oma:log(...)
 
     self.db.logs = self.db.logs or {}
 
-    local level = select(1, ...)
+    local firstArg = select(1, ...)
+    local level = firstArg
     local msg = select(2, ...)
 
     if type(level) ~= "string" then
         level = "INFO"
-        msg = tostring(select(1, ...))
+        msg = tostring(firstArg)
     else
         level = string.upper(level)
         if not VALID_LEVELS[level] then
             level = "INFO"
-            msg = tostring(select(1, ...))
+            msg = tostring(firstArg)
         elseif type(msg) ~= "string" then
             msg = tostring(msg or "")
         end

@@ -103,7 +103,7 @@ function oma:markTaskComplete(taskId)
         self:print("task not found:", taskId)
         self:log(
             "WARN",
-            string.format("event=task.lookup.failed id=%s source=mark_complete", tostring(taskId))
+            string.format("event=task.lookup.failed id=%s source=mark_complete", taskId)
         )
         return
     end
@@ -130,7 +130,7 @@ function oma:markTaskIncomplete(taskId)
         self:print("task not found:", taskId)
         self:log(
             "WARN",
-            string.format("event=task.lookup.failed id=%s source=mark_incomplete", tostring(taskId))
+            string.format("event=task.lookup.failed id=%s source=mark_incomplete", taskId)
         )
         return
     end
@@ -228,7 +228,7 @@ function oma:markTaskByVisibleIndex(indexText, shouldComplete)
             "WARN",
             string.format(
                 "event=task.lookup.failed selection=%s source=%s reason=invalid_number",
-                tostring(indexText),
+                indexText,
                 shouldComplete and "slash_done" or "slash_undo"
             )
         )
