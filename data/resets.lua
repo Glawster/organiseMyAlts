@@ -23,6 +23,7 @@ function oma:refreshTaskResets()
     -- 🗓 Daily reset
     if currentDaily ~= self.db.resets.daily then
         self:printSection("daily reset...")
+        local previousDaily = self.db.resets.daily
         local resetCount = 0
         local previouslyCompletedCount = 0
 
@@ -37,7 +38,6 @@ function oma:refreshTaskResets()
             end
         end
 
-        local previousDaily = self.db.resets.daily
         self.db.resets.daily = currentDaily
         self:print("daily tasks reset")
         self:log(
@@ -55,6 +55,7 @@ function oma:refreshTaskResets()
     -- 📅 Weekly reset
     if currentWeekly ~= self.db.resets.weekly then
         self:printSection("weekly reset...")
+        local previousWeekly = self.db.resets.weekly
         local resetCount = 0
         local previouslyCompletedCount = 0
 
@@ -69,7 +70,6 @@ function oma:refreshTaskResets()
             end
         end
 
-        local previousWeekly = self.db.resets.weekly
         self.db.resets.weekly = currentWeekly
         self:print("weekly tasks reset")
         self:log(
