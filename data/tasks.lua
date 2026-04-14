@@ -88,12 +88,11 @@ function oma:createTask(name, resetType)
     self:log(
         "INFO",
         string.format(
-            "event=task.create id=%s char=%s reset=%s priority=%s source=slash_%s",
+            "event=task.create id=%s char=%s reset=%s priority=%s source=slash_create",
             id,
             charKey,
             resetType,
-            self.db.tasks[id].priority or "unknown",
-            resetType
+            self.db.tasks[id].priority or "unknown"
         )
     )
 end

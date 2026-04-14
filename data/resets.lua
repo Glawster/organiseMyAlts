@@ -24,11 +24,13 @@ function oma:refreshTaskResets()
     if currentDaily ~= self.db.resets.daily then
         self:printSection("daily reset...")
         local resetCount = 0
+        local previouslyCompletedCount = 0
 
         for _, task in pairs(self.db.tasks) do
             if task.resetType == "daily" then
+                resetCount = resetCount + 1
                 if task.completed then
-                    resetCount = resetCount + 1
+                    previouslyCompletedCount = previouslyCompletedCount + 1
                 end
                 task.completed = false
                 task.completedAt = nil
@@ -41,10 +43,11 @@ function oma:refreshTaskResets()
         self:log(
             "INFO",
             string.format(
-                "event=tasks.reset period=daily previous=%s current=%s reset_count=%d source=system_rollover",
+                "event=tasks.reset period=daily previous=%s current=%s reset_count=%d previously_completed=%d source=system_rollover",
                 previousDaily,
                 currentDaily,
-                resetCount
+                resetCount,
+                previouslyCompletedCount
             )
         )
     end
@@ -53,11 +56,13 @@ function oma:refreshTaskResets()
     if currentWeekly ~= self.db.resets.weekly then
         self:printSection("weekly reset...")
         local resetCount = 0
+        local previouslyCompletedCount = 0
 
         for _, task in pairs(self.db.tasks) do
             if task.resetType == "weekly" then
+                resetCount = resetCount + 1
                 if task.completed then
-                    resetCount = resetCount + 1
+                    previouslyCompletedCount = previouslyCompletedCount + 1
                 end
                 task.completed = false
                 task.completedAt = nil
@@ -70,10 +75,11 @@ function oma:refreshTaskResets()
         self:log(
             "INFO",
             string.format(
-                "event=tasks.reset period=weekly previous=%s current=%s reset_count=%d source=system_rollover",
+                "event=tasks.reset period=weekly previous=%s current=%s reset_count=%d previously_completed=%d source=system_rollover",
                 previousWeekly,
                 currentWeekly,
-                resetCount
+                resetCount,
+                previouslyCompletedCount
             )
         )
     end
