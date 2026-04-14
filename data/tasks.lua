@@ -92,7 +92,7 @@ function oma:createTask(name, resetType)
             id,
             charKey,
             resetType,
-            self.db.tasks[id].priority or "unknown"
+            self.db.tasks[id].priority
         )
     )
 end
