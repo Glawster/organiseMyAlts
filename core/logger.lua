@@ -78,7 +78,11 @@ function oma:logDebug(...)
         table.insert(parts, tostring(select(i, ...)))
     end
 
-    self:log("DEBUG", string.format("event=debug.message text=%q", table.concat(parts, " ")))
+    local debugText = table.concat(parts, " ")
+    debugText = debugText:gsub("[%c]+", " ")
+    debugText = debugText:gsub("%s+", " ")
+
+    self:log("DEBUG", string.format("event=debug.message text=%q", debugText))
 end
 
 function oma:resetLogs()
