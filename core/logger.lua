@@ -17,29 +17,25 @@ function oma:printSection(title)
     print("|cff00ff98[organiseMyAlts]|r", "|cffffff00" .. title .. "|r")
 end
 
-function oma:log(...)
+function oma:log(level, msg)
     if not self.db then
         return
     end
 
-    self.db.logs = self.db.logs or {}
-
-    local firstArg = select(1, ...)
-    local level = firstArg
-    local msg = select(2, ...)
-
     if type(level) ~= "string" then
-        level = "INFO"
-        msg = tostring(firstArg)
-    else
-        level = string.upper(level)
-        if not VALID_LEVELS[level] then
-            level = "INFO"
-            msg = tostring(firstArg)
-        elseif type(msg) ~= "string" then
-            msg = tostring(msg or "")
-        end
+        return
     end
+
+    level = string.upper(level)
+    if not VALID_LEVELS[level] then
+        return
+    end
+
+    if type(msg) ~= "string" then
+        return
+    end
+
+    self.db.logs = self.db.logs or {}
 
     table.insert(self.db.logs, {
         ts = date("%Y-%m-%d %H:%M:%S"),
@@ -82,7 +78,11 @@ function oma:logDebug(...)
         table.insert(parts, tostring(select(i, ...)))
     end
 
-    self:log("DEBUG", table.concat(parts, " "))
+    local debugText = table.concat(parts, " ")
+    debugText = debugText:gsub("[\r\n\t]+", " ")
+    debugText = debugText:gsub("%s+", " ")
+
+    self:log("DEBUG", string.format("event=debug.message text=%q", debugText))
 end
 
 function oma:resetLogs()
