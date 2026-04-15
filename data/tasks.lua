@@ -46,7 +46,6 @@ function oma:ensureTemplateTasks()
                 createdAt = time(),
             }
 
-            self:print("added task:", template.name)
             self:log(
                 "INFO",
                 string.format(

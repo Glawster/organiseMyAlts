@@ -48,7 +48,6 @@ function oma:PLAYER_LOGIN()
     self:initialiseResets()
     self:refreshTaskResets()
     self:ensureTemplateTasks()
-    self:print("loaded")
     self:log("INFO", string.format("event=session.start char=%s", charKey))
 end
 
