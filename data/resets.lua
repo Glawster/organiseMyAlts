@@ -4,6 +4,15 @@ local oma = organiseMyAlts
 function oma:initialiseResets()
     self.db.resets.daily = self.db.resets.daily or date("%Y-%m-%d")
     self.db.resets.weekly = self.db.resets.weekly or date("%Y-%U")
+
+    self:log(
+        "DEBUG",
+        string.format(
+            "event=resets.initialised daily=%s weekly=%s",
+            self.db.resets.daily,
+            self.db.resets.weekly
+        )
+    )
 end
 
 -- 🔹 Refresh tasks based on reset changes
@@ -14,9 +23,16 @@ function oma:refreshTaskResets()
     -- 🗓 Daily reset
     if currentDaily ~= self.db.resets.daily then
         self:printSection("daily reset...")
+        local previousDaily = self.db.resets.daily
+        local resetCount = 0
+        local previouslyCompletedCount = 0
 
         for _, task in pairs(self.db.tasks) do
             if task.resetType == "daily" then
+                resetCount = resetCount + 1
+                if task.completed then
+                    previouslyCompletedCount = previouslyCompletedCount + 1
+                end
                 task.completed = false
                 task.completedAt = nil
             end
@@ -24,14 +40,31 @@ function oma:refreshTaskResets()
 
         self.db.resets.daily = currentDaily
         self:print("daily tasks reset")
+        self:log(
+            "INFO",
+            string.format(
+                "event=tasks.reset period=daily previous=%s current=%s reset_count=%d completed_before_reset=%d source=system_rollover",
+                previousDaily,
+                currentDaily,
+                resetCount,
+                previouslyCompletedCount
+            )
+        )
     end
 
     -- 📅 Weekly reset
     if currentWeekly ~= self.db.resets.weekly then
         self:printSection("weekly reset...")
+        local previousWeekly = self.db.resets.weekly
+        local resetCount = 0
+        local previouslyCompletedCount = 0
 
         for _, task in pairs(self.db.tasks) do
             if task.resetType == "weekly" then
+                resetCount = resetCount + 1
+                if task.completed then
+                    previouslyCompletedCount = previouslyCompletedCount + 1
+                end
                 task.completed = false
                 task.completedAt = nil
             end
@@ -39,5 +72,15 @@ function oma:refreshTaskResets()
 
         self.db.resets.weekly = currentWeekly
         self:print("weekly tasks reset")
+        self:log(
+            "INFO",
+            string.format(
+                "event=tasks.reset period=weekly previous=%s current=%s reset_count=%d completed_before_reset=%d source=system_rollover",
+                previousWeekly,
+                currentWeekly,
+                resetCount,
+                previouslyCompletedCount
+            )
+        )
     end
 end

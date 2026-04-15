@@ -47,6 +47,16 @@ function oma:ensureTemplateTasks()
             }
 
             self:print("added task:", template.name)
+            self:log(
+                "INFO",
+                string.format(
+                    "event=task.create id=%s char=%s reset=%s priority=%s source=template",
+                    id,
+                    charKey,
+                    template.resetType or "unknown",
+                    template.priority or "unknown"
+                )
+            )
         end
     end
 end
@@ -55,6 +65,7 @@ function oma:createTask(name, resetType)
     local charKey = self:getCurrentCharacterKey()
     if not charKey then
         self:print("unable to identify current character")
+        self:log("ERROR", "event=task.create.failed reason=missing_character source=slash_create")
         return
     end
 
@@ -74,32 +85,70 @@ function oma:createTask(name, resetType)
     }
 
     self:print("task added:", name)
+    self:log(
+        "INFO",
+        string.format(
+            "event=task.create id=%s char=%s reset=%s priority=%s source=slash_create",
+            id,
+            charKey,
+            resetType,
+            self.db.tasks[id].priority
+        )
+    )
 end
 
 function oma:markTaskComplete(taskId)
     local task = self.db.tasks[taskId]
     if not task then
         self:print("task not found:", taskId)
+        self:log(
+            "WARN",
+            string.format("event=task.lookup.failed id=%s source=mark_complete", taskId)
+        )
         return
     end
 
+    local previousCompleted = task.completed and "true" or "false"
     task.completed = true
     task.completedAt = time()
 
     self:print("task completed:", task.name)
+    self:log(
+        "INFO",
+        string.format(
+            "event=task.complete id=%s char=%s source=slash_done previous_completed=%s",
+            task.id,
+            task.character or "unknown",
+            previousCompleted
+        )
+    )
 end
 
 function oma:markTaskIncomplete(taskId)
     local task = self.db.tasks[taskId]
     if not task then
         self:print("task not found:", taskId)
+        self:log(
+            "WARN",
+            string.format("event=task.lookup.failed id=%s source=mark_incomplete", taskId)
+        )
         return
     end
 
+    local previousCompleted = task.completed and "true" or "false"
     task.completed = false
     task.completedAt = nil
 
     self:print("task reset:", task.name)
+    self:log(
+        "INFO",
+        string.format(
+            "event=task.reopen id=%s char=%s source=slash_undo previous_completed=%s",
+            task.id,
+            task.character or "unknown",
+            previousCompleted
+        )
+    )
 end
 
 function oma:getTasksForCurrentCharacter()
@@ -162,12 +211,27 @@ function oma:markTaskByVisibleIndex(indexText, shouldComplete)
         else
             self:print("usage: /oma undo <number>")
         end
+        self:log(
+            "WARN",
+            string.format(
+                "event=task.command.invalid selection=empty source=%s",
+                shouldComplete and "slash_done" or "slash_undo"
+            )
+        )
         return
     end
 
     local index = tonumber(indexText)
     if not index then
         self:print("invalid selection:", indexText)
+        self:log(
+            "WARN",
+            string.format(
+                "event=task.lookup.failed selection=%s source=%s reason=invalid_number",
+                indexText,
+                shouldComplete and "slash_done" or "slash_undo"
+            )
+        )
         return
     end
 
@@ -177,6 +241,15 @@ function oma:markTaskByVisibleIndex(indexText, shouldComplete)
     if not task then
         self:print("no task found for selection:", index)
         self:print("run /oma tasks to see numbered tasks")
+        self:log(
+            "WARN",
+            string.format(
+                "event=task.lookup.failed selection=%d available=%d source=%s",
+                index,
+                #visibleTasks,
+                shouldComplete and "slash_done" or "slash_undo"
+            )
+        )
         return
     end
 
@@ -267,11 +340,16 @@ function oma:resetTasks(scope)
         self:printSection("reset...")
         self:print("reset tasks for: all characters")
         self:print("tasks reset:", resetCount)
+        self:log(
+            "INFO",
+            string.format("event=tasks.reset scope=all reset_count=%d source=slash_reset", resetCount)
+        )
         return
     end
 
     if not currentCharKey then
         self:print("unable to identify current character")
+        self:log("ERROR", "event=tasks.reset.failed scope=current reason=missing_character source=slash_reset")
         return
     end
 
@@ -286,6 +364,14 @@ function oma:resetTasks(scope)
     self:printSection("reset...")
     self:print("reset tasks for:", currentCharKey)
     self:print("tasks reset:", resetCount)
+    self:log(
+        "INFO",
+        string.format(
+            "event=tasks.reset scope=character char=%s reset_count=%d source=slash_reset",
+            currentCharKey,
+            resetCount
+        )
+    )
 end
 
 function oma:resetTasksForCurrentCharacter()

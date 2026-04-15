@@ -36,15 +36,20 @@ function oma:ADDON_LOADED(name)
 
     self.db = organiseMyAltsDB
     organiseMyAltsDB.logs = organiseMyAltsDB.logs or {}
+    if self.trimLogs then
+        self:trimLogs()
+    end
 end
 
 function oma:PLAYER_LOGIN()
+    local charKey = self:getCurrentCharacterKey() or "unknown"
     self:registerCharacter()
     self:scanCurrentCharacter()
     self:initialiseResets()
     self:refreshTaskResets()
     self:ensureTemplateTasks()
     self:print("loaded")
+    self:log("INFO", string.format("event=session.start char=%s", charKey))
 end
 
 function oma:PLAYER_ENTERING_WORLD()
@@ -77,6 +82,7 @@ function oma:printHelp()
 
     self:print("/oma debug     - toggle debug logging")
     self:print("/oma logs      - show recent logs")
+    self:print("/oma logreset  - clear stored logs")
 
     self:print("/oma reset     - reset task completion for current character")
     self:print("/oma reset all - reset task completion for all characters")
@@ -134,6 +140,13 @@ function oma:handleSlash(msg)
     elseif command == "debug" then
         self.db.settings.debug = not self.db.settings.debug
         self:print("debug logging:", self.db.settings.debug and "ON" or "OFF")
+        self:log(
+            "INFO",
+            string.format(
+                "event=logging.debug_toggle enabled=%s source=slash_debug",
+                self.db.settings.debug and "true" or "false"
+            )
+        )
 
     elseif command == "logs" then
         self:printSection("recent logs...")
@@ -143,8 +156,11 @@ function oma:handleSlash(msg)
 
         for i = start, #logs do
             local entry = logs[i]
-            self:print(entry.ts, entry.msg)
+            self:print(entry.ts, entry.level or "INFO", entry.msg)
         end
+
+    elseif command == "logreset" then
+        self:resetLogs()
 
     elseif command == "reset" then
         self:resetTasks(rest)
