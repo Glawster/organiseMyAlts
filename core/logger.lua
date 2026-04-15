@@ -79,7 +79,7 @@ function oma:logDebug(...)
     end
 
     local debugText = table.concat(parts, " ")
-    debugText = debugText:gsub("[%c]+", " ")
+    debugText = debugText:gsub("[\r\n\t]+", " ")
     debugText = debugText:gsub("%s+", " ")
 
     self:log("DEBUG", string.format("event=debug.message text=%q", debugText))
