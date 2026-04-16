@@ -153,7 +153,7 @@ Log analysis events:
 
 ```
 event=keybind.scan char=Name spec=Spec abilities=24
-event=keybind.consensus role=interrupt key=R confidence=0.87
+event=keybind.consensus_summary categories=8 char=Name-Realm
 event=keybind.analysis conflicts=3 suggestions=5
 ```
 

@@ -41,7 +41,7 @@ function oma:getCurrentSpecInfo()
     return specID, specName
 end
 
-function oma:getCurrentProfessions()
+function oma:getCurrentProfessions(primaryOnly)
     local professions = {
         primary1 = nil,
         primary2 = nil,
@@ -59,6 +59,12 @@ function oma:getCurrentProfessions()
         fishing = fishing,
         cooking = cooking,
     }
+
+    if primaryOnly then
+        indices.archaeology = nil
+        indices.fishing = nil
+        indices.cooking = nil
+    end
 
     for key, index in pairs(indices) do
         if index then
@@ -135,7 +141,7 @@ function oma:scanCurrentCharacter()
     character.specName = specName
     character.averageItemLevel = avgItemLevel
     character.equippedItemLevel = equippedItemLevel
-    character.professions = self:getCurrentProfessions()
+    character.professions = self:getCurrentProfessions(true)
     character.equipment = self:scanCurrentEquipment()
     character.lastLogin = time()
     character.lastScan = time()

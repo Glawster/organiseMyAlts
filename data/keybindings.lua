@@ -127,6 +127,36 @@ local function captureActionSlots()
     return actionSlots, buttonBySlot, bindingByButton, bindingByKey
 end
 
+local function buildSnapshotHash(snapshot)
+    local parts = {
+        tostring(snapshot.class or "UNKNOWN"),
+        tostring(snapshot.specID or 0),
+        tostring(snapshot.specName or "unknown"),
+    }
+
+    local slots = {}
+    for slot, _ in pairs(snapshot.actionSlots or {}) do
+        table.insert(slots, slot)
+    end
+    table.sort(slots)
+
+    for _, slot in ipairs(slots) do
+        local entry = snapshot.actionSlots[slot]
+        local primaryKey = entry and entry.keys and entry.keys[1] or ""
+        table.insert(
+            parts,
+            string.format(
+                "%d:%s:%s",
+                slot,
+                tostring(entry and entry.spellID or 0),
+                tostring(primaryKey)
+            )
+        )
+    end
+
+    return table.concat(parts, "|")
+end
+
 function oma:getCurrentTalentLoadoutID()
     -- Returns nil when the class talents API is unavailable for this client/version.
     if C_ClassTalents and C_ClassTalents.GetActiveConfigID then
@@ -179,6 +209,7 @@ function oma:captureKeybindingSnapshot()
         ts = time(),
         character = characterKey,
         class = select(2, UnitClass("player")),
+        spec = specName,
         specID = specID,
         specName = specName,
         talentLoadoutID = self:getCurrentTalentLoadoutID(),
@@ -202,6 +233,17 @@ function oma:captureKeybindingSnapshot()
                 category = category,
                 categorySource = source,
             })
+        end
+    end
+
+    snapshot.hash = buildSnapshotHash(snapshot)
+    local latest = self:getLatestKeybindSnapshot(characterKey)
+    if latest then
+        if latest.hash and latest.hash == snapshot.hash then
+            return latest
+        end
+        if not latest.hash and latest.specName == snapshot.specName and latest.specID == snapshot.specID then
+            return latest
         end
     end
 
@@ -279,20 +321,29 @@ function oma:getKeybindConsensusForCharacter(characterKey)
 
     for _, snapshot in ipairs(snapshots) do
         for _, ability in ipairs(snapshot.abilities or {}) do
-            if ability.category and ability.key then
-                addVote(accountVotes, ability.category, ability.key)
+            if ability.key then
+                local category = ability.category or "unknown"
+                addVote(accountVotes, category, ability.key)
                 if currentClass and snapshot.class == currentClass then
-                    addVote(classVotes, ability.category, ability.key)
+                    addVote(classVotes, category, ability.key)
                 end
                 if snapshot.character == characterKey then
-                    addVote(charVotes, ability.category, ability.key)
+                    addVote(charVotes, category, ability.key)
                 end
             end
         end
     end
 
     local consensus = {}
+    local categories = {}
     for _, category in ipairs(self.keybindCategoryOrder or {}) do
+        table.insert(categories, category)
+    end
+    if accountVotes.unknown or classVotes.unknown or charVotes.unknown then
+        table.insert(categories, "unknown")
+    end
+
+    for _, category in ipairs(categories) do
         local preferred = self.keybindCategoryDefaults[category] or {}
         local key, votes, total = getBestKeyForCategory(charVotes[category], preferred)
         local source = "character"
@@ -346,12 +397,13 @@ function oma:getKeybindRecommendations(characterKey)
 
     if latest then
         for _, ability in ipairs(latest.abilities or {}) do
-            local recommendation = consensus[ability.category]
-            if recommendation and recommendation.key and ability.key ~= recommendation.key then
+            local category = ability.category or "unknown"
+            local recommendation = consensus[category]
+            if recommendation and recommendation.key and (recommendation.confidence or 0) > 0.6 and ability.key ~= recommendation.key then
                 table.insert(conflicts, {
                     spellID = ability.spellID,
                     spellName = ability.spellName,
-                    category = ability.category,
+                    category = category,
                     currentKey = ability.key,
                     suggestedKey = recommendation.key,
                 })
@@ -382,15 +434,6 @@ function oma:printKeybindRecommendations()
         local entry = result.consensus and result.consensus[category]
         if entry then
             consensusCount = consensusCount + 1
-            self:log(
-                "INFO",
-                string.format(
-                    "event=keybind.consensus role=%s key=%s confidence=%.2f",
-                    category,
-                    entry.key or "none",
-                    entry.confidence or 0
-                )
-            )
             self:print(
                 string.format(
                     "%s -> %s (%s, confidence %.2f)",
@@ -402,6 +445,14 @@ function oma:printKeybindRecommendations()
             )
         end
     end
+    self:log(
+        "INFO",
+        string.format(
+            "event=keybind.consensus_summary categories=%d char=%s",
+            consensusCount,
+            characterKey
+        )
+    )
 
     self:print("mismatches:", #result.conflicts)
     self:log(
