@@ -56,7 +56,8 @@ local function normaliseBindingKey(key)
 end
 
 local function getPreferredCategoryByKey(key)
-    for category, keys in pairs(oma.keybindCategoryDefaults) do
+    for _, category in ipairs(oma.keybindCategoryOrder or {}) do
+        local keys = oma.keybindCategoryDefaults[category] or {}
         for _, preferredKey in ipairs(keys) do
             if preferredKey == key then
                 return category
@@ -143,6 +144,7 @@ function oma:getSpellCategory(spellID, spellName, key)
         return inferred, "key_preference"
     end
 
+    -- Keep this narrow on purpose: broad name heuristics create noisy misclassification.
     if spellName and string.find(string.lower(spellName), "assist", 1, true) then
         return "assist", "name_inference"
     end
@@ -231,6 +233,11 @@ local function addVote(votes, category, key)
 end
 
 local function getBestKeyForCategory(categoryVotes, preferredKeys)
+    local preferredRankByKey = {}
+    for index, key in ipairs(preferredKeys or {}) do
+        preferredRankByKey[key] = index
+    end
+
     local bestKey = nil
     local bestVotes = -1
     local totalVotes = 0
@@ -240,12 +247,13 @@ local function getBestKeyForCategory(categoryVotes, preferredKeys)
         if count > bestVotes then
             bestVotes = count
             bestKey = key
-        elseif count == bestVotes and preferredKeys then
-            for _, preferred in ipairs(preferredKeys) do
-                if key == preferred then
-                    bestKey = key
-                    break
-                end
+        elseif count == bestVotes then
+            local currentRank = preferredRankByKey[key] or math.huge
+            local bestRank = preferredRankByKey[bestKey] or math.huge
+            if currentRank < bestRank then
+                bestKey = key
+            elseif currentRank == bestRank and key < bestKey then
+                bestKey = key
             end
         end
     end
@@ -299,12 +307,19 @@ function oma:getKeybindConsensusForCharacter(characterKey)
             source = "default"
         end
 
+        local confidence = (total and total > 0) and (votes / total) or 0
+        if confidence > 1 then
+            confidence = 1
+        elseif confidence < 0 then
+            confidence = 0
+        end
+
         consensus[category] = {
             key = key,
             source = source,
             votes = votes or 0,
             total = total or 0,
-            confidence = (total and total > 0) and (votes / total) or 0,
+            confidence = confidence,
         }
     end
 
