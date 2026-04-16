@@ -74,7 +74,7 @@ local function getSpellNameFromAction(actionType, actionID, fallbackName)
     end
 
     local name
-    if type(GetSpellInfo) == "function" then
+    if GetSpellInfo then
         name = GetSpellInfo(actionID)
     elseif C_Spell and C_Spell.GetSpellName then
         name = C_Spell.GetSpellName(actionID)
