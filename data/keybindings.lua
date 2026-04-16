@@ -73,7 +73,7 @@ local function getSpellNameFromAction(actionType, actionID, fallbackName)
         return fallbackName
     end
 
-    local name = nil
+    local name
     if type(GetSpellInfo) == "function" then
         name = GetSpellInfo(actionID)
     elseif C_Spell and C_Spell.GetSpellName then
