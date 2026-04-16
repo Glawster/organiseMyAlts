@@ -240,6 +240,7 @@ function oma:captureKeybindingSnapshot()
     local latest = self:getLatestKeybindSnapshot(characterKey)
     if latest then
         if latest.hash and latest.hash == snapshot.hash then
+            self:logDebug("event=keybind.scan.skip reason=unchanged_snapshot char=" .. characterKey)
             return latest
         end
     end
