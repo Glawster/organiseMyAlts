@@ -5,6 +5,7 @@ local oma = organiseMyAlts
 
 oma.name = addonName
 oma.version = "0.2.2"
+oma.keybindDefaultMaxSnapshots = 120
 
 oma.eventFrame = CreateFrame("Frame")
 oma.lastNextTaskIds = {}
@@ -34,7 +35,7 @@ function oma:ADDON_LOADED(name)
     organiseMyAltsDB.keybinds = organiseMyAltsDB.keybinds or {}
     organiseMyAltsDB.keybinds.snapshots = organiseMyAltsDB.keybinds.snapshots or {}
     organiseMyAltsDB.keybinds.classificationOverrides = organiseMyAltsDB.keybinds.classificationOverrides or {}
-    organiseMyAltsDB.keybinds.maxSnapshots = organiseMyAltsDB.keybinds.maxSnapshots or 120
+    organiseMyAltsDB.keybinds.maxSnapshots = organiseMyAltsDB.keybinds.maxSnapshots or self.keybindDefaultMaxSnapshots
     organiseMyAltsDB.settings = organiseMyAltsDB.settings or {}
     organiseMyAltsDB.uiState = organiseMyAltsDB.uiState or {}
 

@@ -47,7 +47,7 @@ local function normaliseBindingKey(key)
         return nil
     end
 
-    local trimmed = strtrim(key)
+    local trimmed = key:match("^%s*(.-)%s*$")
     if trimmed == "" then
         return nil
     end
@@ -144,11 +144,6 @@ function oma:getSpellCategory(spellID, spellName, key)
         return inferred, "key_preference"
     end
 
-    -- Keep this narrow on purpose: broad name heuristics create noisy misclassification.
-    if spellName and string.find(string.lower(spellName), "assist", 1, true) then
-        return "assist", "name_inference"
-    end
-
     return "utility", "fallback"
 end
 
@@ -206,7 +201,7 @@ function oma:captureKeybindingSnapshot()
     self.db.keybinds.snapshots = self.db.keybinds.snapshots or {}
     table.insert(self.db.keybinds.snapshots, snapshot)
 
-    local maxSnapshots = self.db.keybinds.maxSnapshots or 120
+    local maxSnapshots = self.db.keybinds.maxSnapshots or self.keybindDefaultMaxSnapshots or 120
     while #self.db.keybinds.snapshots > maxSnapshots do
         table.remove(self.db.keybinds.snapshots, 1)
     end
@@ -241,20 +236,22 @@ local function getBestKeyForCategory(categoryVotes, preferredKeys)
     local bestKey = nil
     local bestVotes = -1
     local totalVotes = 0
+    local function shouldReplace(existingKey, candidateKey)
+        local existingRank = preferredRankByKey[existingKey] or math.huge
+        local candidateRank = preferredRankByKey[candidateKey] or math.huge
+        if candidateRank ~= existingRank then
+            return candidateRank < existingRank
+        end
+        return candidateKey < existingKey
+    end
 
     for key, count in pairs(categoryVotes or {}) do
         totalVotes = totalVotes + count
         if count > bestVotes then
             bestVotes = count
             bestKey = key
-        elseif count == bestVotes then
-            local currentRank = preferredRankByKey[key] or math.huge
-            local bestRank = preferredRankByKey[bestKey] or math.huge
-            if currentRank < bestRank then
-                bestKey = key
-            elseif currentRank == bestRank and key < bestKey then
-                bestKey = key
-            end
+        elseif count == bestVotes and shouldReplace(bestKey, key) then
+            bestKey = key
         end
     end
 
@@ -307,19 +304,12 @@ function oma:getKeybindConsensusForCharacter(characterKey)
             source = "default"
         end
 
-        local confidence = (total and total > 0) and (votes / total) or 0
-        if confidence > 1 then
-            confidence = 1
-        elseif confidence < 0 then
-            confidence = 0
-        end
-
         consensus[category] = {
             key = key,
             source = source,
             votes = votes or 0,
             total = total or 0,
-            confidence = confidence,
+            confidence = (total and total > 0) and (votes / total) or 0,
         }
     end
 
