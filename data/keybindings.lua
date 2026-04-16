@@ -209,7 +209,6 @@ function oma:captureKeybindingSnapshot()
         ts = time(),
         character = characterKey,
         class = select(2, UnitClass("player")),
-        spec = specName,
         specID = specID,
         specName = specName,
         talentLoadoutID = self:getCurrentTalentLoadoutID(),
@@ -308,6 +307,10 @@ local function getBestKeyForCategory(categoryVotes, preferredKeys)
     return bestKey, bestVotes, totalVotes
 end
 
+local function hasVotes(categoryVotes)
+    return categoryVotes and next(categoryVotes) ~= nil
+end
+
 function oma:getKeybindConsensusForCharacter(characterKey)
     local snapshots = self.db.keybinds and self.db.keybinds.snapshots or {}
     local char = self.db.characters and self.db.characters[characterKey]
@@ -337,7 +340,7 @@ function oma:getKeybindConsensusForCharacter(characterKey)
     for _, category in ipairs(self.keybindCategoryOrder or {}) do
         table.insert(categories, category)
     end
-    if accountVotes.unknown or classVotes.unknown or charVotes.unknown then
+    if hasVotes(accountVotes.unknown) or hasVotes(classVotes.unknown) or hasVotes(charVotes.unknown) then
         table.insert(categories, "unknown")
     end
 
