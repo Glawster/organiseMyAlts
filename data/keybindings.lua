@@ -122,6 +122,7 @@ local function captureActionSlots()
 end
 
 function oma:getCurrentTalentLoadoutID()
+    -- Returns nil when the class talents API is unavailable for this client/version.
     if C_ClassTalents and C_ClassTalents.GetActiveConfigID then
         return C_ClassTalents.GetActiveConfigID()
     end
@@ -237,6 +238,8 @@ local function getBestKeyForCategory(categoryVotes, preferredKeys)
     local bestVotes = -1
     local totalVotes = 0
     local function shouldReplace(existingKey, candidateKey)
+        -- Tie-breaker for equal vote counts:
+        -- 1) prefer lower preferred-key rank, 2) then stable alphabetical order.
         local existingRank = preferredRankByKey[existingKey] or math.huge
         local candidateRank = preferredRankByKey[candidateKey] or math.huge
         if candidateRank ~= existingRank then
@@ -303,13 +306,14 @@ function oma:getKeybindConsensusForCharacter(characterKey)
             total = 0
             source = "default"
         end
+        local confidence = (total and total > 0) and (votes / total) or 0
 
         consensus[category] = {
             key = key,
             source = source,
             votes = votes or 0,
             total = total or 0,
-            confidence = (total and total > 0) and (votes / total) or 0,
+            confidence = confidence,
         }
     end
 
@@ -363,13 +367,13 @@ function oma:printKeybindRecommendations()
     end
 
     local result = self:getKeybindRecommendations(characterKey)
-    local suggestionCount = 0
+    local consensusCount = 0
     self:printSection("keybind recommendations...")
 
     for _, category in ipairs(self.keybindCategoryOrder or {}) do
         local entry = result.consensus and result.consensus[category]
         if entry then
-            suggestionCount = suggestionCount + 1
+            consensusCount = consensusCount + 1
             self:log(
                 "INFO",
                 string.format(
@@ -397,7 +401,7 @@ function oma:printKeybindRecommendations()
         string.format(
             "event=keybind.analysis conflicts=%d suggestions=%d",
             #result.conflicts,
-            suggestionCount
+            consensusCount
         )
     )
 end

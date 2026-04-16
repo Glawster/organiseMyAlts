@@ -33,9 +33,10 @@ function oma:ADDON_LOADED(name)
     organiseMyAltsDB.warband = organiseMyAltsDB.warband or {}
     organiseMyAltsDB.layouts = organiseMyAltsDB.layouts or {}
     organiseMyAltsDB.keybinds = organiseMyAltsDB.keybinds or {}
-    organiseMyAltsDB.keybinds.snapshots = organiseMyAltsDB.keybinds.snapshots or {}
-    organiseMyAltsDB.keybinds.classificationOverrides = organiseMyAltsDB.keybinds.classificationOverrides or {}
-    organiseMyAltsDB.keybinds.maxSnapshots = organiseMyAltsDB.keybinds.maxSnapshots or self.keybindDefaultMaxSnapshots
+    local keybindsDB = organiseMyAltsDB.keybinds
+    keybindsDB.snapshots = keybindsDB.snapshots or {}
+    keybindsDB.classificationOverrides = keybindsDB.classificationOverrides or {}
+    keybindsDB.maxSnapshots = keybindsDB.maxSnapshots or self.keybindDefaultMaxSnapshots
     organiseMyAltsDB.settings = organiseMyAltsDB.settings or {}
     organiseMyAltsDB.uiState = organiseMyAltsDB.uiState or {}
 
