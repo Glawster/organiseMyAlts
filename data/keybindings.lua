@@ -131,7 +131,7 @@ function oma:getCurrentTalentLoadoutID()
 end
 
 function oma:getSpellCategory(spellID, spellName, key)
-    local overrides = self.db.keybinds and self.db.keybinds.classificationOverrides or nil
+    local overrides = self.db.keybinds and self.db.keybinds.classificationOverrides
     if overrides and spellID and overrides[spellID] then
         return overrides[spellID], "manual_override"
     end
@@ -202,7 +202,7 @@ function oma:captureKeybindingSnapshot()
     self.db.keybinds.snapshots = self.db.keybinds.snapshots or {}
     table.insert(self.db.keybinds.snapshots, snapshot)
 
-    local maxSnapshots = self.db.keybinds.maxSnapshots or self.keybindDefaultMaxSnapshots or 120
+    local maxSnapshots = self.db.keybinds.maxSnapshots or self.keybindDefaultMaxSnapshots
     while #self.db.keybinds.snapshots > maxSnapshots do
         table.remove(self.db.keybinds.snapshots, 1)
     end
@@ -240,6 +240,7 @@ local function getBestKeyForCategory(categoryVotes, preferredKeys)
     local function shouldReplace(existingKey, candidateKey)
         -- Tie-breaker for equal vote counts:
         -- 1) prefer lower preferred-key rank, 2) then stable alphabetical order.
+        -- math.huge marks unranked keys so ranked keys always win rank comparisons.
         local existingRank = preferredRankByKey[existingKey] or math.huge
         local candidateRank = preferredRankByKey[candidateKey] or math.huge
         if candidateRank ~= existingRank then
@@ -306,6 +307,7 @@ function oma:getKeybindConsensusForCharacter(characterKey)
             total = 0
             source = "default"
         end
+        -- "confidence" is consensus strength: winning-key share of votes in the selected layer.
         local confidence = (total and total > 0) and (votes / total) or 0
 
         consensus[category] = {
