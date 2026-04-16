@@ -9,6 +9,7 @@ core/init.lua
 core/logger.lua
 data/characters.lua
 data/characterScan.lua
+data/keybindings.lua
 data/resets.lua
 data/tasks.lua
 data/taskTemplates.lua

@@ -212,7 +212,7 @@ The addon must:
 
 ---
 
-## Keybind & Action Bar Consistency (future)
+## Keybind & Action Bar Consistency
 
 Goal:
 
@@ -224,11 +224,24 @@ Model:
 role → slot → keybind
 ```
 
-Examples:
+Categories:
 
-* builder → 1
-* spender → 2
-* interrupt → F
+* assist → 1
+* builder → 2 / 3
+* spender → 4 / 5
+* interrupt → R / `
+* defensive → E
+* movement → Q
+* cooldown → T / Y
+* utility → F1-F4
+
+Current support:
+
+* capture action slot → spell and key → action button snapshots
+* store snapshots with character, spec, talent loadout, and timestamp
+* classify captured abilities (built-in + manual override support)
+* build layered consensus (character → class → account)
+* show recommendations with `/oma keybinds`
 
 ---
 
@@ -260,6 +273,10 @@ organiseMyAltsDB = {
     resets = {},
     warband = {},
     layouts = {},
+    keybinds = {
+        snapshots = {},
+        classificationOverrides = {},
+    },
     settings = {},
 }
 ```

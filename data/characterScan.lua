@@ -141,6 +141,9 @@ function oma:scanCurrentCharacter()
     character.lastScan = time()
 
     self.db.characters[characterKey] = character
+    if self.captureKeybindingSnapshot then
+        self:captureKeybindingSnapshot()
+    end
 
     local p1 = character.professions and character.professions.primary1 or nil
     local p2 = character.professions and character.professions.primary2 or nil

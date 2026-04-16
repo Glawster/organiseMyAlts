@@ -31,6 +31,10 @@ function oma:ADDON_LOADED(name)
     organiseMyAltsDB.resets = organiseMyAltsDB.resets or {}
     organiseMyAltsDB.warband = organiseMyAltsDB.warband or {}
     organiseMyAltsDB.layouts = organiseMyAltsDB.layouts or {}
+    organiseMyAltsDB.keybinds = organiseMyAltsDB.keybinds or {}
+    organiseMyAltsDB.keybinds.snapshots = organiseMyAltsDB.keybinds.snapshots or {}
+    organiseMyAltsDB.keybinds.classificationOverrides = organiseMyAltsDB.keybinds.classificationOverrides or {}
+    organiseMyAltsDB.keybinds.maxSnapshots = organiseMyAltsDB.keybinds.maxSnapshots or 120
     organiseMyAltsDB.settings = organiseMyAltsDB.settings or {}
     organiseMyAltsDB.uiState = organiseMyAltsDB.uiState or {}
 
@@ -78,6 +82,7 @@ function oma:printHelp()
 
     self:print("/oma alts      - show alt rankings")
     self:print("/oma best      - best alt to play")
+    self:print("/oma keybinds  - capture + show keybind consensus")
 
     self:print("/oma debug     - toggle debug logging")
     self:print("/oma logs      - show recent logs")
@@ -135,6 +140,10 @@ function oma:handleSlash(msg)
     
     elseif command == "best" then
         self:printBestAlt()
+    
+    elseif command == "keybinds" then
+        self:captureKeybindingSnapshot()
+        self:printKeybindRecommendations()
 
     elseif command == "debug" then
         self.db.settings.debug = not self.db.settings.debug
