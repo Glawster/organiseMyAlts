@@ -242,9 +242,6 @@ function oma:captureKeybindingSnapshot()
         if latest.hash and latest.hash == snapshot.hash then
             return latest
         end
-        if not latest.hash and latest.specName == snapshot.specName and latest.specID == snapshot.specID then
-            return latest
-        end
     end
 
     self.db.keybinds.snapshots = self.db.keybinds.snapshots or {}
