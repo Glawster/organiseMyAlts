@@ -43,6 +43,8 @@ It:
 * manual task creation
 * per-character task tracking
 * basic “next tasks” output
+* keybind snapshot capture + consensus suggestions
+* keybind scan status UI panel
 
 ### Slash commands
 
@@ -51,6 +53,8 @@ It:
 /oma chars
 /oma tasks
 /oma next
+/oma keybinds
+/oma ui
 ```
 
 ---

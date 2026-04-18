@@ -7,6 +7,7 @@
 
 core/init.lua
 core/logger.lua
+core/ui.lua
 data/characters.lua
 data/characterScan.lua
 data/keybindings.lua

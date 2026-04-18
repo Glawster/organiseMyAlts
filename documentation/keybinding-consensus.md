@@ -132,6 +132,18 @@ Each category maps to a preferred key.
 
 ---
 
+## In-Game Scan Status UI
+
+Use `/oma ui` to toggle a compact status panel that shows:
+
+- current character + active spec + active talent loadout ID
+- whether the current character/spec/talent combination has been scanned
+- recent scanned combinations with scan count and latest timestamp
+
+The panel refreshes when `/oma scan` or `/oma keybinds` runs while it is open.
+
+---
+
 ## Example Mapping
 
 | Category  | Suggested Key |
@@ -139,10 +151,10 @@ Each category maps to a preferred key.
 | Assist    | 1             |
 | Builder   | 2–3           |
 | Spender   | 4–5           |
-| Interrupt | ` F3          |
-| Defensive | F5-F7         |
-| Movement  | F8            |
-| Cooldown  | Q T Y         |
+| Interrupt | R / `         |
+| Defensive | E             |
+| Movement  | Q             |
+| Cooldown  | T / Y         |
 | Utility   | F1–F4         |
 
 ---

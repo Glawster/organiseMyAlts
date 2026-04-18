@@ -85,6 +85,7 @@ function oma:printHelp()
     self:print("/oma alts      - show alt rankings")
     self:print("/oma best      - best alt to play")
     self:print("/oma keybinds  - capture + show keybind consensus")
+    self:print("/oma ui        - toggle keybind scan status panel")
 
     self:print("/oma debug     - toggle debug logging")
     self:print("/oma logs      - show recent logs")
@@ -115,6 +116,9 @@ function oma:handleSlash(msg)
 
     elseif command == "scan" then
         self:scanCurrentCharacter()
+        if self.keybindStatusFrame and self.keybindStatusFrame:IsShown() then
+            self:refreshKeybindStatusUI()
+        end
         self:printCurrentCharacterSummary()
 
     elseif command == "done" then
@@ -146,6 +150,12 @@ function oma:handleSlash(msg)
     elseif command == "keybinds" then
         self:captureKeybindingSnapshot()
         self:printKeybindRecommendations()
+        if self.keybindStatusFrame and self.keybindStatusFrame:IsShown() then
+            self:refreshKeybindStatusUI()
+        end
+
+    elseif command == "ui" then
+        self:toggleKeybindStatusUI()
 
     elseif command == "debug" then
         self.db.settings.debug = not self.db.settings.debug
