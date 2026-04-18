@@ -134,16 +134,16 @@ Each category maps to a preferred key.
 
 ## Example Mapping
 
-| Category   | Suggested Key |
-|-----------|-------------|
-| Assist    | 1           |
-| Builder   | 2–3         |
-| Spender   | 4–5         |
-| Interrupt | R           |
-| Defensive | E           |
-| Movement  | Q           |
-| Cooldown  | T / Y       |
-| Utility   | F1–F4       |
+| Category  | Suggested Key |
+|-----------|---------------|
+| Assist    | 1             |
+| Builder   | 2–3           |
+| Spender   | 4–5           |
+| Interrupt | ` F3          |
+| Defensive | F5-F7         |
+| Movement  | F8            |
+| Cooldown  | Q T Y         |
+| Utility   | F1–F4         |
 
 ---
 
