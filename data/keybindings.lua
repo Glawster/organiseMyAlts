@@ -240,9 +240,7 @@ function oma:captureKeybindingSnapshot()
     if latest then
         if latest.hash and latest.hash == snapshot.hash then
             self:logDebug("event=keybind.scan.skip reason=unchanged_snapshot char=" .. characterKey)
-            if self.refreshKeybindStatusUIIfVisible then
-                self:refreshKeybindStatusUIIfVisible()
-            end
+            self:refreshKeybindStatusUIIfVisible()
             return latest
         end
     end
@@ -264,9 +262,7 @@ function oma:captureKeybindingSnapshot()
             #snapshot.abilities
         )
     )
-    if self.refreshKeybindStatusUIIfVisible then
-        self:refreshKeybindStatusUIIfVisible()
-    end
+    self:refreshKeybindStatusUIIfVisible()
 
     return snapshot
 end

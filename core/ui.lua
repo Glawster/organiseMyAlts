@@ -3,7 +3,12 @@ local oma = organiseMyAlts
 local MAX_STATUS_ROWS = 10
 
 local function formatTimestamp(ts)
-    local dateFn = date or (os and os.date)
+    local dateFn = nil
+    if type(date) == "function" then
+        dateFn = date
+    elseif os and type(os.date) == "function" then
+        dateFn = os.date
+    end
     if not ts then
         return "unknown"
     end
@@ -21,7 +26,7 @@ function oma:getKeybindSnapshotScanStatus(characterKey, specID, talentLoadoutID)
     for _, snapshot in ipairs(snapshots) do
         if snapshot.character == characterKey and snapshot.specID == specID and snapshot.talentLoadoutID == talentLoadoutID then
             count = count + 1
-            if not latestTs or (snapshot.ts and snapshot.ts > latestTs) then
+            if snapshot.ts and (not latestTs or snapshot.ts > latestTs) then
                 latestTs = snapshot.ts
             end
         end
@@ -56,8 +61,9 @@ function oma:getKeybindSnapshotStatusRows(limit)
         end
 
         row.count = row.count + 1
-        if (snapshot.ts or 0) > row.latestTs then
-            row.latestTs = snapshot.ts or 0
+        local ts = snapshot.ts or 0
+        if ts > row.latestTs then
+            row.latestTs = ts
         end
     end
 
