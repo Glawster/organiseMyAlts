@@ -89,9 +89,11 @@ function oma:getCharacterStatusRows()
         })
     end
 
+    -- Sort by lastScan descending so the displayed "Last Scan" column matches the order.
+    -- Fall back to lastLogin for characters that have never been scanned.
     table.sort(rows, function(a, b)
-        local aTs = math.max(a.lastScan or 0, a.lastLogin or 0)
-        local bTs = math.max(b.lastScan or 0, b.lastLogin or 0)
+        local aTs = (a.lastScan and a.lastScan > 0) and a.lastScan or (a.lastLogin or 0)
+        local bTs = (b.lastScan and b.lastScan > 0) and b.lastScan or (b.lastLogin or 0)
         return aTs > bTs
     end)
 
@@ -218,7 +220,7 @@ function oma:refreshKeybindStatusUI()
             cells.class:SetText(row.class)
             cells.spec:SetText(row.specName)
             cells.level:SetText(tostring(row.level))
-            cells.ilvl:SetText(row.ilvl > 0 and string.format("%d", row.ilvl) or "?")
+            cells.ilvl:SetText((row.ilvl and row.ilvl > 0) and string.format("%d", row.ilvl) or "?")
             cells.scanned:SetText(kbText)
             cells.lastscan:SetText(lastScanText)
 
