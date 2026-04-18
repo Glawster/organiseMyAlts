@@ -3,10 +3,14 @@ local oma = organiseMyAlts
 local MAX_STATUS_ROWS = 10
 
 local function formatTimestamp(ts)
+    local dateFn = date or (os and os.date)
     if not ts then
         return "unknown"
     end
-    return date("%Y-%m-%d %H:%M", ts)
+    if not dateFn then
+        return tostring(ts)
+    end
+    return dateFn("%Y-%m-%d %H:%M", ts)
 end
 
 function oma:getKeybindSnapshotScanStatus(characterKey, specID, talentLoadoutID)
@@ -165,6 +169,7 @@ end
 
 function oma:toggleKeybindStatusUI()
     local frame = self:ensureKeybindStatusFrame()
+    self.db.uiState = self.db.uiState or {}
 
     if frame:IsShown() then
         frame:Hide()

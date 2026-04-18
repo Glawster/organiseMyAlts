@@ -61,6 +61,12 @@ function oma:PLAYER_ENTERING_WORLD()
     self:registerCharacter()
 end
 
+function oma:refreshKeybindStatusUIIfVisible()
+    if self.keybindStatusFrame and self.keybindStatusFrame:IsShown() and self.refreshKeybindStatusUI then
+        self:refreshKeybindStatusUI()
+    end
+end
+
 SLASH_ORGANISEMYALTS1 = "/oma"
 
 SlashCmdList["ORGANISEMYALTS"] = function(msg)
@@ -116,9 +122,7 @@ function oma:handleSlash(msg)
 
     elseif command == "scan" then
         self:scanCurrentCharacter()
-        if self.keybindStatusFrame and self.keybindStatusFrame:IsShown() then
-            self:refreshKeybindStatusUI()
-        end
+        self:refreshKeybindStatusUIIfVisible()
         self:printCurrentCharacterSummary()
 
     elseif command == "done" then
@@ -150,9 +154,7 @@ function oma:handleSlash(msg)
     elseif command == "keybinds" then
         self:captureKeybindingSnapshot()
         self:printKeybindRecommendations()
-        if self.keybindStatusFrame and self.keybindStatusFrame:IsShown() then
-            self:refreshKeybindStatusUI()
-        end
+        self:refreshKeybindStatusUIIfVisible()
 
     elseif command == "ui" then
         self:toggleKeybindStatusUI()
