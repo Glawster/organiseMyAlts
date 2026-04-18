@@ -4,10 +4,10 @@ local MAX_STATUS_ROWS = 10
 
 local function formatTimestamp(ts)
     local dateFn = nil
-    if type(date) == "function" then
-        dateFn = date
-    elseif os and type(os.date) == "function" then
+    if os and type(os.date) == "function" then
         dateFn = os.date
+    elseif type(date) == "function" then
+        dateFn = date
     end
     if not ts then
         return "unknown"

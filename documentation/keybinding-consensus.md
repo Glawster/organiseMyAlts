@@ -151,7 +151,7 @@ The panel refreshes when `/oma scan` or `/oma keybinds` runs while it is open.
 | Assist    | 1             |
 | Builder   | 2–3           |
 | Spender   | 4–5           |
-| Interrupt | R / backtick (`) |
+| Interrupt | R / backtick    |
 | Defensive | E             |
 | Movement  | Q             |
 | Cooldown  | T / Y         |
