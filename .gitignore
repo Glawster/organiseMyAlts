@@ -39,4 +39,4 @@ luac.out
 *.x86_64
 *.hex
 
-tools/uiTestHarness/src/__pycache__/mainWindow.cpython-312.pyc
+*.pyc
