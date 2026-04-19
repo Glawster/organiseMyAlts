@@ -349,12 +349,15 @@ organiseMyAltsDB = {
 
 ```
 organiseMyAlts/
-├── organiseMyAlts.toc
+├── uiTestHarness/
+│   ├── src/
+│   ├── tests/
+│   ├── pytest.ini
+│   └── requirements-dev.txt
 ├── core/
 ├── data/
 ├── engine/
-├── ui/
-└── tools/
+└── documentation/
 ```
 
 ---
