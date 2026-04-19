@@ -1,5 +1,6 @@
+from src.mainWindow import MainWindow
+
 def testMainWindowLoads(qtbot):
-    from uiTestHarness.src.mainWindow import MainWindow
 
     window = MainWindow()
     qtbot.addWidget(window)

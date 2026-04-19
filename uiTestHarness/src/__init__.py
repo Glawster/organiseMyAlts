@@ -1,1 +1,0 @@
-from uiTestHarness.src.mainWindow import MainWindow

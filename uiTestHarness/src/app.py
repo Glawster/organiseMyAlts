@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QApplication
-from uiTestHarness.src.mainWindow import MainWindow
-import sys
+from src.mainWindow import MainWindow
 
+import sys
 
 def run():
     app = QApplication(sys.argv)
@@ -10,7 +10,6 @@ def run():
     window.show()
 
     return app.exec()
-
 
 if __name__ == "__main__":
     sys.exit(run())

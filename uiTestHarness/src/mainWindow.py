@@ -1,9 +1,9 @@
+from pathlib import Path
 from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout
 
-from uiTestHarness.src.widgets.characterList import CharacterList
-from uiTestHarness.src.widgets.weeklyPanel import WeeklyPanel
-from uiTestHarness.src.services.mockDataService import MockDataService
-
+from src.widgets.characterList import CharacterList
+from src.widgets.weeklyPanel import WeeklyPanel
+from src.services.jsonDataService import JsonDataService
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -11,7 +11,11 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle("OrganiseMyAlts UI Test Harness")
 
-        self.dataService = MockDataService()
+        baseDir = Path(__file__).resolve().parents[1]
+        fixturePath = baseDir / "tests" / "fixtures" / "sampleRoster.json"
+
+        self.dataService = JsonDataService(fixturePath)
+        self.dataService.load()
 
         self._buildUi()
         self._loadData()
@@ -43,5 +47,4 @@ class MainWindow(QMainWindow):
 
         character = self.characters[index]
         tasks = self.dataService.getWeeklyTasks(character)
-
         self.weeklyPanel.updateTasks(tasks)

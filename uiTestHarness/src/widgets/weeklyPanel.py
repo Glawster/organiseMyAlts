@@ -7,15 +7,18 @@ class WeeklyPanel(QWidget):
 
         self.setObjectName("weeklyPanel")
 
-        self.layout = QVBoxLayout()
+        layout = QVBoxLayout()
 
         self.title = QLabel("Weekly Tasks")
         self.tasksLabel = QLabel("Select a character")
 
-        self.layout.addWidget(self.title)
-        self.layout.addWidget(self.tasksLabel)
+        layout.addWidget(self.title)
+        layout.addWidget(self.tasksLabel)
 
-        self.setLayout(self.layout)
+        self.setLayout(layout)
 
     def updateTasks(self, tasks):
-        self.tasksLabel.setText("\n".join(tasks))
+        if tasks:
+            self.tasksLabel.setText("\n".join(tasks))
+        else:
+            self.tasksLabel.setText("No weekly tasks remaining")

@@ -1,5 +1,5 @@
 def testSelectingCharacterUpdatesTasks(qtbot):
-    from uiTestHarness.src.mainWindow import MainWindow
+    from src.mainWindow import MainWindow
 
     window = MainWindow()
     qtbot.addWidget(window)
@@ -9,7 +9,7 @@ def testSelectingCharacterUpdatesTasks(qtbot):
     window.characterList.setCurrentRow(0)
 
     qtbot.waitUntil(
-        lambda: "Menion" in window.weeklyPanel.tasksLabel.text()
+        lambda: "Delve" in window.weeklyPanel.tasksLabel.text()
     )
 
-    assert "Delve (Menion)" in window.weeklyPanel.tasksLabel.text()
+    assert "Delve" in window.weeklyPanel.tasksLabel.text()

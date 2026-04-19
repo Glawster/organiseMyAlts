@@ -9,4 +9,4 @@ class CharacterList(QListWidget):
     def loadCharacters(self, characters):
         self.clear()
         for char in characters:
-            self.addItem(char.name)
+            self.addItem(char["name"])
