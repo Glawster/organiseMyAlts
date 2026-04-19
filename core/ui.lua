@@ -4,9 +4,8 @@ local oma = organiseMyAlts
 local FRAME_WIDTH         = 740
 local FRAME_HEIGHT        = 400
 local CONTENT_LEFT        = 14
-local CONTENT_TOP_Y       = -30
-local COL_HDR_Y           = -54
-local ROW_START_Y         = -74
+local COL_HDR_Y           = -36
+local ROW_START_Y         = -56
 local ROW_HEIGHT          = 17
 local MAX_CHAR_ROWS       = 16
 
@@ -35,6 +34,39 @@ local function formatTimestamp(ts)
         return tostring(ts)
     end
     return dateFn("%m-%d %H:%M", ts)
+end
+
+-- Returns "Name" from "NAME" (sentence case).
+local function toSentenceCase(s)
+    if not s or s == "" then return s end
+    return s:sub(1, 1):upper() .. s:sub(2):lower()
+end
+
+-- Returns r, g, b for a WoW class name using RAID_CLASS_COLORS when available.
+local CLASS_COLORS_FALLBACK = {
+    DEATHKNIGHT = {0.77, 0.12, 0.23},
+    DEMONHUNTER = {0.64, 0.19, 0.79},
+    DRUID       = {1.00, 0.49, 0.04},
+    EVOKER      = {0.20, 0.58, 0.50},
+    HUNTER      = {0.67, 0.83, 0.45},
+    MAGE        = {0.25, 0.78, 0.92},
+    MONK        = {0.00, 1.00, 0.60},
+    PALADIN     = {0.96, 0.55, 0.73},
+    PRIEST      = {1.00, 1.00, 1.00},
+    ROGUE       = {1.00, 0.96, 0.41},
+    SHAMAN      = {0.00, 0.44, 0.87},
+    WARLOCK     = {0.53, 0.53, 0.93},
+    WARRIOR     = {0.78, 0.61, 0.23},
+}
+
+local function getClassColor(className)
+    if RAID_CLASS_COLORS and RAID_CLASS_COLORS[className] then
+        local c = RAID_CLASS_COLORS[className]
+        return c.r, c.g, c.b
+    end
+    local c = CLASS_COLORS_FALLBACK[className]
+    if c then return c[1], c[2], c[3] end
+    return 0.9, 0.9, 0.9
 end
 
 -- Returns the latest keybind snapshot timestamp for a character (any spec).
@@ -114,11 +146,16 @@ local function createRowCells(frame, yOffset, fontTemplate)
     return cells
 end
 
--- Colours a row of cells based on whether it is the current character.
-local function tintRowCells(cells, isCurrent)
+-- Colours a row of cells. Non-class cells use yellow (current) or white (other).
+-- The class cell always uses the WoW class colour.
+local function tintRowCells(cells, isCurrent, className)
     local r, g, b = isCurrent and 1 or 0.9, isCurrent and 1 or 0.9, isCurrent and 0 or 0.9
-    for _, fs in pairs(cells) do
-        fs:SetTextColor(r, g, b)
+    for key, fs in pairs(cells) do
+        if key == "class" then
+            fs:SetTextColor(getClassColor(className))
+        else
+            fs:SetTextColor(r, g, b)
+        end
     end
 end
 
@@ -141,12 +178,6 @@ function oma:ensureKeybindStatusFrame()
     frame.title = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     frame.title:SetPoint("TOP", frame, "TOP", 0, -8)
     frame.title:SetText("organiseMyAlts — Character Overview")
-
-    -- Current character summary line
-    frame.currentLine = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    frame.currentLine:SetPoint("TOPLEFT", frame, "TOPLEFT", CONTENT_LEFT, CONTENT_TOP_Y)
-    frame.currentLine:SetJustifyH("LEFT")
-    frame.currentLine:SetText("")
 
     -- Divider texture
     frame.divider = frame:CreateTexture(nil, "ARTWORK")
@@ -188,18 +219,6 @@ function oma:refreshKeybindStatusUI()
     local talentLoadoutID  = self:getCurrentTalentLoadoutID()
     local scanned, scansForCombo = self:getKeybindSnapshotScanStatus(currentKey, specID, talentLoadoutID)
 
-    -- Current character summary line
-    frame.currentLine:SetText(
-        string.format(
-            "Current: %s  |  %s  |  talents %s  |  keybind scanned: %s (%d)",
-            currentKey ~= "" and currentKey or "unknown",
-            specName or "?",
-            tostring(talentLoadoutID or "none"),
-            scanned and "|cff00ff00YES|r" or "|cffff4444NO|r",
-            scansForCombo or 0
-        )
-    )
-
     -- Populate data rows
     local rows = self:getCharacterStatusRows()
     local hasData = #rows > 0
@@ -217,14 +236,14 @@ function oma:refreshKeybindStatusUI()
             local lastScanText = row.lastScan and row.lastScan > 0 and formatTimestamp(row.lastScan) or "---"
 
             cells.char:SetText(row.name or row.characterKey)
-            cells.class:SetText(row.class)
+            cells.class:SetText(toSentenceCase(row.class))
             cells.spec:SetText(row.specName)
             cells.level:SetText(tostring(row.level))
             cells.ilvl:SetText((row.ilvl and row.ilvl > 0) and string.format("%d", row.ilvl) or "?")
             cells.scanned:SetText(kbText)
             cells.lastscan:SetText(lastScanText)
 
-            tintRowCells(cells, isCurrent)
+            tintRowCells(cells, isCurrent, row.class)
         else
             for _, fs in pairs(cells) do
                 fs:SetText("")
