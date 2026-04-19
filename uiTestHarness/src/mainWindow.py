@@ -1,8 +1,8 @@
 from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout
 
-from widgets.characterList import CharacterList
-from widgets.weeklyPanel import WeeklyPanel
-from services.mockDataService import MockDataService
+from uiTestHarness.src.widgets.characterList import CharacterList
+from uiTestHarness.src.widgets.weeklyPanel import WeeklyPanel
+from uiTestHarness.src.services.mockDataService import MockDataService
 
 
 class MainWindow(QMainWindow):

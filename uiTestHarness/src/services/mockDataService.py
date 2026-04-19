@@ -1,4 +1,4 @@
-from models.character import Character
+from uiTestHarness.src.models.character import Character
 
 
 class MockDataService:

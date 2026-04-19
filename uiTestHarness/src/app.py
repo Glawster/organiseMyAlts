@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QApplication
-from mainWindow import MainWindow
+from uiTestHarness.src.mainWindow import MainWindow
 import sys
 
 

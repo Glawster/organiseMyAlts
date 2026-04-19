@@ -1,5 +1,5 @@
 def testSelectingCharacterUpdatesTasks(qtbot):
-    from src.mainWindow import MainWindow
+    from uiTestHarness.src.mainWindow import MainWindow
 
     window = MainWindow()
     qtbot.addWidget(window)
