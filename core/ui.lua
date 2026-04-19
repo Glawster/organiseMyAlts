@@ -42,6 +42,23 @@ local function toSentenceCase(s)
     return s:sub(1, 1):upper() .. s:sub(2):lower()
 end
 
+-- All spec names per class (WoW retail). Used to compute missing specs.
+local CLASS_SPECS = {
+    DEATHKNIGHT = { "Blood", "Frost", "Unholy" },
+    DEMONHUNTER = { "Havoc", "Vengeance" },
+    DRUID       = { "Balance", "Feral", "Guardian", "Restoration" },
+    EVOKER      = { "Augmentation", "Devastation", "Preservation" },
+    HUNTER      = { "Beast Mastery", "Marksmanship", "Survival" },
+    MAGE        = { "Arcane", "Fire", "Frost" },
+    MONK        = { "Brewmaster", "Mistweaver", "Windwalker" },
+    PALADIN     = { "Holy", "Protection", "Retribution" },
+    PRIEST      = { "Discipline", "Holy", "Shadow" },
+    ROGUE       = { "Assassination", "Outlaw", "Subtlety" },
+    SHAMAN      = { "Elemental", "Enhancement", "Restoration" },
+    WARLOCK     = { "Affliction", "Demonology", "Destruction" },
+    WARRIOR     = { "Arms", "Fury", "Protection" },
+}
+
 -- Returns r, g, b for a WoW class name using RAID_CLASS_COLORS when available.
 local CLASS_COLORS_FALLBACK = {
     DEATHKNIGHT = {0.77, 0.12, 0.23},
@@ -106,6 +123,24 @@ function oma:getScannedSpecNamesForCharacter(characterKey)
 end
 
 
+-- Returns a sorted list of spec names for the character's class that have NOT
+-- yet had a keybind snapshot captured.
+function oma:getMissingSpecNamesForCharacter(characterKey, className)
+    local allSpecs = CLASS_SPECS[className] or {}
+    local scanned = self:getScannedSpecNamesForCharacter(characterKey)
+    local scannedSet = {}
+    for _, name in ipairs(scanned) do
+        scannedSet[name] = true
+    end
+    local missing = {}
+    for _, name in ipairs(allSpecs) do
+        if not scannedSet[name] then
+            table.insert(missing, name)
+        end
+    end
+    return missing
+end
+
 function oma:getKeybindSnapshotScanStatus(characterKey, specID, talentLoadoutID)
     local snapshots = self.db and self.db.keybinds and self.db.keybinds.snapshots or {}
     local count = 0
@@ -130,11 +165,12 @@ function oma:getCharacterStatusRows()
     local rows = {}
 
     for key, char in pairs(characters) do
+        local charClass = char.class or "?"
         local latestScanTs = self:getLatestKeybindScanTs(key)
         table.insert(rows, {
             characterKey     = key,
             name             = char.name or key,
-            class            = char.class or "?",
+            class            = charClass,
             specName         = char.specName or "?",
             level            = char.level or 0,
             ilvl             = char.equippedItemLevel or char.averageItemLevel or 0,
@@ -142,6 +178,7 @@ function oma:getCharacterStatusRows()
             lastLogin        = char.lastLogin or 0,
             keybindTs        = latestScanTs,
             scannedSpecNames = self:getScannedSpecNamesForCharacter(key),
+            missingSpecNames = self:getMissingSpecNamesForCharacter(key, charClass),
         })
     end
 
@@ -232,6 +269,22 @@ function oma:ensureKeybindStatusFrame()
     frame.emptyLabel:SetText("No characters tracked yet. Log in to each character and run /oma scan.")
     frame.emptyLabel:Hide()
 
+    -- Toggle button: switches KB Specs column between scanned and missing specs.
+    local btn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+    btn:SetSize(120, 22)
+    btn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -30, -6)
+    btn:SetText("Show Missing")
+    btn:SetScript("OnClick", function()
+        frame.showMissing = not frame.showMissing
+        if frame.showMissing then
+            btn:SetText("Show Scanned")
+        else
+            btn:SetText("Show Missing")
+        end
+        oma:refreshKeybindStatusUI()
+    end)
+    frame.specToggleBtn = btn
+
     -- Register with the game engine so Escape closes the frame automatically.
     table.insert(UISpecialFrames, "organiseMyAltsKeybindStatusFrame")
 
@@ -249,8 +302,10 @@ function oma:refreshKeybindStatusUI()
     -- Populate data rows
     local rows = self:getCharacterStatusRows()
     local hasData = #rows > 0
+    local showMissing = frame.showMissing
 
     frame.emptyLabel:SetShown(not hasData)
+    frame.colHeaders.scanned:SetText(showMissing and "KB Missing" or "KB Specs")
 
     for i = 1, MAX_CHAR_ROWS do
         local cells = frame.charRows[i]
@@ -258,16 +313,28 @@ function oma:refreshKeybindStatusUI()
 
         if row then
             local isCurrent = row.characterKey == currentKey
-            local specNames = row.scannedSpecNames or {}
+            local specNames = showMissing and (row.missingSpecNames or {}) or (row.scannedSpecNames or {})
             local kbText
-            if #specNames == 0 then
-                kbText = "|cffff4444------|r"
-            else
-                local parts = {}
-                for _, name in ipairs(specNames) do
-                    table.insert(parts, specAbbrev(name))
+            if showMissing then
+                if #specNames == 0 then
+                    kbText = "|cff00ff00none|r"
+                else
+                    local parts = {}
+                    for _, name in ipairs(specNames) do
+                        table.insert(parts, specAbbrev(name))
+                    end
+                    kbText = "|cffff4444" .. table.concat(parts, "/") .. "|r"
                 end
-                kbText = "|cff00ff00" .. table.concat(parts, "/") .. "|r"
+            else
+                if #specNames == 0 then
+                    kbText = "|cffff4444------|r"
+                else
+                    local parts = {}
+                    for _, name in ipairs(specNames) do
+                        table.insert(parts, specAbbrev(name))
+                    end
+                    kbText = "|cff00ff00" .. table.concat(parts, "/") .. "|r"
+                end
             end
             local lastScanText = row.lastScan and row.lastScan > 0 and formatTimestamp(row.lastScan) or "---"
 
