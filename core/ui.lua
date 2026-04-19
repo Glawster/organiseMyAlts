@@ -1,7 +1,7 @@
 local oma = organiseMyAlts
 
 -- Layout constants
-local FRAME_WIDTH         = 740
+local FRAME_WIDTH         = 860
 local FRAME_HEIGHT        = 400
 local CONTENT_LEFT        = 14
 local COL_HDR_Y           = -36
@@ -17,7 +17,7 @@ local COL = {
     level   = CONTENT_LEFT + 390,
     ilvl    = CONTENT_LEFT + 435,
     scanned = CONTENT_LEFT + 490,
-    lastscan = CONTENT_LEFT + 560,
+    lastscan = CONTENT_LEFT + 636,
 }
 
 local function formatTimestamp(ts)
@@ -83,6 +83,29 @@ function oma:getLatestKeybindScanTs(characterKey)
     return latestTs
 end
 
+-- Returns the first 4 characters of a spec name for compact display.
+local function specAbbrev(name)
+    if not name or name == "" then return "?" end
+    return name:sub(1, 4)
+end
+
+-- Returns a sorted list of unique spec names that have at least one snapshot
+-- for the given character key.
+function oma:getScannedSpecNamesForCharacter(characterKey)
+    local snapshots = self.db and self.db.keybinds and self.db.keybinds.snapshots or {}
+    local seen = {}
+    local list = {}
+    for _, snapshot in ipairs(snapshots) do
+        if snapshot.character == characterKey and snapshot.specName and not seen[snapshot.specName] then
+            seen[snapshot.specName] = true
+            table.insert(list, snapshot.specName)
+        end
+    end
+    table.sort(list)
+    return list
+end
+
+
 function oma:getKeybindSnapshotScanStatus(characterKey, specID, talentLoadoutID)
     local snapshots = self.db and self.db.keybinds and self.db.keybinds.snapshots or {}
     local count = 0
@@ -109,15 +132,16 @@ function oma:getCharacterStatusRows()
     for key, char in pairs(characters) do
         local latestScanTs = self:getLatestKeybindScanTs(key)
         table.insert(rows, {
-            characterKey  = key,
-            name          = char.name or key,
-            class         = char.class or "?",
-            specName      = char.specName or "?",
-            level         = char.level or 0,
-            ilvl          = char.equippedItemLevel or char.averageItemLevel or 0,
-            lastScan      = char.lastScan or 0,
-            lastLogin     = char.lastLogin or 0,
-            keybindTs     = latestScanTs,
+            characterKey     = key,
+            name             = char.name or key,
+            class            = char.class or "?",
+            specName         = char.specName or "?",
+            level            = char.level or 0,
+            ilvl             = char.equippedItemLevel or char.averageItemLevel or 0,
+            lastScan         = char.lastScan or 0,
+            lastLogin        = char.lastLogin or 0,
+            keybindTs        = latestScanTs,
+            scannedSpecNames = self:getScannedSpecNamesForCharacter(key),
         })
     end
 
@@ -192,7 +216,7 @@ function oma:ensureKeybindStatusFrame()
     frame.colHeaders.spec:SetText("Spec")
     frame.colHeaders.level:SetText("Lvl")
     frame.colHeaders.ilvl:SetText("iLvl")
-    frame.colHeaders.scanned:SetText("KB Scan")
+    frame.colHeaders.scanned:SetText("KB Specs")
     frame.colHeaders.lastscan:SetText("Last Scan")
 
     -- Data rows
@@ -234,8 +258,17 @@ function oma:refreshKeybindStatusUI()
 
         if row then
             local isCurrent = row.characterKey == currentKey
-            local kbTs = row.keybindTs
-            local kbText = kbTs and ("|cff00ff00YES|r") or "|cffff4444NO|r"
+            local specNames = row.scannedSpecNames or {}
+            local kbText
+            if #specNames == 0 then
+                kbText = "|cffff4444------|r"
+            else
+                local parts = {}
+                for _, name in ipairs(specNames) do
+                    table.insert(parts, specAbbrev(name))
+                end
+                kbText = "|cff00ff00" .. table.concat(parts, "/") .. "|r"
+            end
             local lastScanText = row.lastScan and row.lastScan > 0 and formatTimestamp(row.lastScan) or "---"
 
             cells.char:SetText(row.name or row.characterKey)
