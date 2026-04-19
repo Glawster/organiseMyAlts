@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
+from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
 
 
 class WeeklyPanel(QWidget):
@@ -11,6 +11,7 @@ class WeeklyPanel(QWidget):
 
         self.title = QLabel("Weekly Tasks")
         self.tasksLabel = QLabel("Select a character")
+        self.tasksLabel.setObjectName("tasksLabel")
 
         layout.addWidget(self.title)
         layout.addWidget(self.tasksLabel)

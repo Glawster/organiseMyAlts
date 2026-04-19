@@ -14,6 +14,7 @@ class JsonDataService:
     def getCharacters(self):
         if self._data is None:
             raise RuntimeError("json data has not been loaded")
+
         return self._data.get("characters", [])
 
     def getWeeklyTasks(self, character):

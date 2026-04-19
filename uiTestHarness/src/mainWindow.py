@@ -1,9 +1,11 @@
 from pathlib import Path
-from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout
 
+from PySide6.QtWidgets import QHBoxLayout, QMainWindow, QWidget
+
+from src.services.jsonDataService import JsonDataService
 from src.widgets.characterList import CharacterList
 from src.widgets.weeklyPanel import WeeklyPanel
-from src.services.jsonDataService import JsonDataService
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
