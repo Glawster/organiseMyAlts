@@ -208,6 +208,9 @@ function oma:ensureKeybindStatusFrame()
     frame.emptyLabel:SetText("No characters tracked yet. Log in to each character and run /oma scan.")
     frame.emptyLabel:Hide()
 
+    -- Register with the game engine so Escape closes the frame automatically.
+    table.insert(UISpecialFrames, "organiseMyAltsKeybindStatusFrame")
+
     self.keybindStatusFrame = frame
     return frame
 end
