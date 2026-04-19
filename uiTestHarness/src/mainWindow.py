@@ -1,9 +1,10 @@
 from pathlib import Path
 
-from PySide6.QtWidgets import QHBoxLayout, QMainWindow, QWidget
+from PySide6.QtWidgets import QHBoxLayout, QMainWindow, QVBoxLayout, QWidget
 
 from src.services.jsonDataService import JsonDataService
 from src.widgets.characterList import CharacterList
+from src.widgets.characterOverviewPanel import CharacterOverviewPanel
 from src.widgets.weeklyPanel import WeeklyPanel
 
 
@@ -25,20 +26,32 @@ class MainWindow(QMainWindow):
 
     def _buildUi(self):
         central = QWidget()
-        layout = QHBoxLayout()
+        outerLayout = QVBoxLayout()
+
+        topRow = QWidget()
+        topLayout = QHBoxLayout()
+        topLayout.setContentsMargins(0, 0, 0, 0)
 
         self.characterList = CharacterList()
         self.weeklyPanel = WeeklyPanel()
 
-        layout.addWidget(self.characterList)
-        layout.addWidget(self.weeklyPanel)
+        topLayout.addWidget(self.characterList)
+        topLayout.addWidget(self.weeklyPanel)
+        topRow.setLayout(topLayout)
 
-        central.setLayout(layout)
+        self.characterOverviewPanel = CharacterOverviewPanel()
+
+        outerLayout.addWidget(topRow)
+        outerLayout.addWidget(self.characterOverviewPanel)
+
+        central.setLayout(outerLayout)
         self.setCentralWidget(central)
 
     def _loadData(self):
         self.characters = self.dataService.getCharacters()
         self.characterList.loadCharacters(self.characters)
+        overviewRows = self.dataService.getCharacterOverviewRows()
+        self.characterOverviewPanel.loadRows(overviewRows)
 
     def _connectSignals(self):
         self.characterList.currentRowChanged.connect(self._onCharacterSelected)

@@ -28,3 +28,21 @@ class JsonDataService:
             tasks.append("World Boss")
 
         return tasks
+
+    def getCharacterOverviewRows(self):
+        characters = self.getCharacters()
+        rows = []
+
+        for char in characters:
+            ilvl = char.get("ilvl", 0)
+            rows.append({
+                "name": char.get("name", ""),
+                "class": char.get("class", "?"),
+                "spec": char.get("spec", "?"),
+                "level": char.get("level", 0),
+                "ilvl": str(ilvl) if ilvl else "?",
+                "keybindScanned": char.get("keybindScanned", False),
+                "lastScan": char.get("lastScan", "---"),
+            })
+
+        return rows
