@@ -132,15 +132,28 @@ Each category maps to a preferred key.
 
 ---
 
-## In-Game Scan Status UI
+## In-Game Character Overview UI
 
-Use `/oma ui` to toggle a compact status panel that shows:
+Use `/oma ui` to toggle the character overview panel.
 
-- current character + active spec + active talent loadout ID
-- whether the current character/spec/talent combination has been scanned
-- recent scanned combinations with scan count and latest timestamp
+The panel shows:
 
-The panel refreshes when `/oma scan` or `/oma keybinds` runs while it is open.
+- current character summary line: active spec, talent loadout ID, and whether the current spec/talent combo has a keybind snapshot
+- a column table listing **all tracked characters** with:
+
+| Column    | Description                                        |
+|-----------|----------------------------------------------------|
+| Character | Character name                                     |
+| Class     | WoW class token                                    |
+| Spec      | Active spec from last scan                         |
+| Lvl       | Character level                                    |
+| iLvl      | Equipped item level from last scan                 |
+| KB Scan   | YES (green) / NO (red) — keybind snapshot present  |
+| Last Scan | Date/time of last `/oma scan` run                  |
+
+The current character's row is highlighted in yellow.
+
+The panel refreshes automatically when `/oma scan` or `/oma keybinds` runs while it is open.
 
 ---
 

@@ -44,7 +44,7 @@ It:
 * per-character task tracking
 * basic “next tasks” output
 * keybind snapshot capture + consensus suggestions
-* keybind scan status UI panel
+* character overview panel (`/oma ui`) with column table showing all alts, scan status, and item level
 
 ### Slash commands
 
@@ -349,12 +349,15 @@ organiseMyAltsDB = {
 
 ```
 organiseMyAlts/
-├── organiseMyAlts.toc
+├── uiTestHarness/
+│   ├── src/
+│   ├── tests/
+│   ├── pytest.ini
+│   └── requirements-dev.txt
 ├── core/
 ├── data/
 ├── engine/
-├── ui/
-└── tools/
+└── documentation/
 ```
 
 ---
