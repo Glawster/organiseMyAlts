@@ -9,6 +9,12 @@ local ROW_START_Y         = -62
 local ROW_HEIGHT          = 17
 local MAX_CHAR_ROWS       = 16
 
+-- Spec badge dimensions within the KB Specs column area
+local BADGE_WIDTH  = 32
+local BADGE_HEIGHT = 14
+local BADGE_GAP    = 4
+local MAX_BADGES   = 4  -- enough for Druid (4 specs)
+
 -- Column x-offsets from the left edge of the frame content area
 local COL = {
     char    = CONTENT_LEFT,
@@ -187,6 +193,30 @@ local function createRowCells(frame, yOffset, fontTemplate)
     return cells
 end
 
+-- Creates per-spec coloured badge textures and labels for one data row.
+-- Returns a list of {bg, lbl} tables with one slot per MAX_BADGES.
+local function createSpecBadgeRow(frame, yOffset)
+    local badges = {}
+    for i = 1, MAX_BADGES do
+        local xOff = COL.scanned + (i - 1) * (BADGE_WIDTH + BADGE_GAP)
+
+        local bg = frame:CreateTexture(nil, "BACKGROUND")
+        bg:SetSize(BADGE_WIDTH, BADGE_HEIGHT)
+        bg:SetPoint("TOPLEFT", frame, "TOPLEFT", xOff, yOffset)
+        bg:SetColorTexture(0, 0, 0, 0)
+
+        local lbl = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+        lbl:SetSize(BADGE_WIDTH, 0)
+        lbl:SetPoint("TOPLEFT", frame, "TOPLEFT", xOff, yOffset)
+        lbl:SetJustifyH("CENTER")
+        lbl:SetText("")
+        lbl:SetTextColor(1, 1, 1, 0)
+
+        badges[i] = { bg = bg, lbl = lbl }
+    end
+    return badges
+end
+
 -- Colours a row of cells. Non-class cells use yellow (current) or white (other).
 -- The class cell always uses the WoW class colour.
 local function tintRowCells(cells, isCurrent, className)
@@ -249,6 +279,13 @@ function oma:ensureKeybindStatusFrame()
     frame.emptyLabel:SetText("No characters tracked yet. Log in to each character and run /oma scan.")
     frame.emptyLabel:Hide()
 
+    -- Per-row spec badge arrays (one slot per data row)
+    frame.specBadgeRows = {}
+    for i = 1, MAX_CHAR_ROWS do
+        local yOff = ROW_START_Y - (i - 1) * ROW_HEIGHT
+        frame.specBadgeRows[i] = createSpecBadgeRow(frame, yOff)
+    end
+
     -- Register with the game engine so Escape closes the frame automatically.
     table.insert(UISpecialFrames, "organiseMyAltsKeybindStatusFrame")
 
@@ -269,25 +306,39 @@ function oma:refreshKeybindStatusUI()
     frame.emptyLabel:SetShown(not hasData)
 
     for i = 1, MAX_CHAR_ROWS do
-        local cells = frame.charRows[i]
-        local row = rows[i]
+        local cells  = frame.charRows[i]
+        local row    = rows[i]
+        local badges = frame.specBadgeRows[i]
 
         if row then
             local isCurrent = row.characterKey == currentKey
-            local allSpecs = CLASS_SPECS[row.class] or {}
+
+            -- Reset all spec badge slots
+            for j = 1, MAX_BADGES do
+                badges[j].bg:SetColorTexture(0, 0, 0, 0)
+                badges[j].lbl:SetText("")
+                badges[j].lbl:SetTextColor(1, 1, 1, 0)
+            end
+
+            -- Fill a coloured badge for each spec in the character's class
+            local allSpecs  = CLASS_SPECS[row.class] or {}
             local scannedSet = {}
             for _, name in ipairs(row.scannedSpecNames) do
                 scannedSet[name] = true
             end
-            local parts = {}
-            for _, name in ipairs(allSpecs) do
-                if scannedSet[name] then
-                    table.insert(parts, "|cff00ff00[" .. specAbbrev(name) .. "]|r")
-                else
-                    table.insert(parts, "|cffff4444[" .. specAbbrev(name) .. "]|r")
+            for j, name in ipairs(allSpecs) do
+                if j <= MAX_BADGES then
+                    local badge = badges[j]
+                    if scannedSet[name] then
+                        badge.bg:SetColorTexture(0.05, 0.40, 0.05, 0.85)
+                    else
+                        badge.bg:SetColorTexture(0.40, 0.05, 0.05, 0.85)
+                    end
+                    badge.lbl:SetText(specAbbrev(name))
+                    badge.lbl:SetTextColor(1, 1, 1, 1)
                 end
             end
-            local kbText = #parts > 0 and table.concat(parts, " ") or "|cff888888[?]|r"
+
             local lastScanText = row.lastScan and row.lastScan > 0 and formatTimestamp(row.lastScan) or "---"
 
             cells.char:SetText(row.name or row.characterKey)
@@ -295,13 +346,17 @@ function oma:refreshKeybindStatusUI()
             cells.spec:SetText(row.specName)
             cells.level:SetText(tostring(row.level))
             cells.ilvl:SetText((row.ilvl and row.ilvl > 0) and string.format("%d", row.ilvl) or "?")
-            cells.scanned:SetText(kbText)
             cells.lastscan:SetText(lastScanText)
 
             tintRowCells(cells, isCurrent, row.class)
         else
             for _, fs in pairs(cells) do
                 fs:SetText("")
+            end
+            for j = 1, MAX_BADGES do
+                badges[j].bg:SetColorTexture(0, 0, 0, 0)
+                badges[j].lbl:SetText("")
+                badges[j].lbl:SetTextColor(1, 1, 1, 0)
             end
         end
     end

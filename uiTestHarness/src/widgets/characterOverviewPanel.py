@@ -1,6 +1,5 @@
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QBrush, QColor
-from PySide6.QtWidgets import QTableWidget, QTableWidgetItem
+from PySide6.QtWidgets import QHBoxLayout, QLabel, QTableWidget, QTableWidgetItem, QWidget
 
 # Mirrors CLASS_SPECS in core/ui.lua.
 CLASS_SPECS = {
@@ -21,9 +20,45 @@ CLASS_SPECS = {
 
 COLUMNS = ["Character", "Class", "Spec", "Level", "iLvl", "KB Specs", "Last Scan"]
 
-_GREEN  = QColor(0x00, 0xFF, 0x00)
-_RED    = QColor(0xFF, 0x44, 0x44)
-_YELLOW = QColor(0xFF, 0xFF, 0x00)
+
+class SpecBadgesWidget(QWidget):
+    """Renders per-spec coloured badge cells inside the KB Specs table column.
+
+    Each spec gets its own QLabel: green background if scanned, red if not.
+    """
+
+    SCANNED_COLOR   = "#0d5e0d"
+    UNSCANNED_COLOR = "#5e0d0d"
+
+    def __init__(self, specs):
+        """
+        Args:
+            specs: list of (abbrev: str, scanned: bool) pairs.
+        """
+        super().__init__()
+        layout = QHBoxLayout()
+        layout.setContentsMargins(3, 1, 3, 1)
+        layout.setSpacing(3)
+        self._labels = []
+        for abbrev, scanned in specs:
+            color = self.SCANNED_COLOR if scanned else self.UNSCANNED_COLOR
+            label = QLabel(abbrev)
+            label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            label.setFixedHeight(18)
+            label.setMinimumWidth(28)
+            label.setStyleSheet(
+                f"background-color: {color}; color: white; "
+                "border-radius: 2px; padding: 0px 3px; font-size: 10px;"
+            )
+            layout.addWidget(label)
+            self._labels.append((abbrev, scanned, label))
+        layout.addStretch()
+        self.setLayout(layout)
+
+    @property
+    def labels(self):
+        """Return list of (abbrev, scanned, QLabel) triples for test assertions."""
+        return self._labels
 
 
 class CharacterOverviewPanel(QTableWidget):
@@ -37,6 +72,7 @@ class CharacterOverviewPanel(QTableWidget):
         self.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.verticalHeader().setVisible(False)
         self.horizontalHeader().setStretchLastSection(True)
+        self.verticalHeader().setDefaultSectionSize(26)
 
     def loadRows(self, rows):
         """Populate the table from a list of row dicts produced by JsonDataService."""
@@ -51,36 +87,22 @@ class CharacterOverviewPanel(QTableWidget):
             scanned_set = set(row.get("scannedSpecs", []))
 
             if all_specs:
-                parts = []
-                for spec in all_specs:
-                    prefix = "+" if spec in scanned_set else "-"
-                    parts.append(prefix + spec[:3])
-                kb_text = " ".join(parts)
-
-                scanned_count = sum(1 for s in all_specs if s in scanned_set)
-                if scanned_count == len(all_specs):
-                    kb_color = _GREEN
-                elif scanned_count == 0:
-                    kb_color = _RED
-                else:
-                    kb_color = _YELLOW
+                specs = [(spec[:3], spec in scanned_set) for spec in all_specs]
             else:
-                kb_text = "[?]"
-                kb_color = None
+                specs = [("?", False)]
 
-            cells = [
-                row.get("name", ""),
-                row.get("class", "?"),
-                row.get("spec", "?"),
-                str(row.get("level", 0)),
-                str(row.get("ilvl", "?")),
-                kb_text,
-                row.get("lastScan", "---"),
+            text_cells = [
+                (0, row.get("name", "")),
+                (1, row.get("class", "?")),
+                (2, row.get("spec", "?")),
+                (3, str(row.get("level", 0))),
+                (4, str(row.get("ilvl", "?"))),
+                (6, row.get("lastScan", "---")),
             ]
 
-            for col, text in enumerate(cells):
+            for col, text in text_cells:
                 item = QTableWidgetItem(text)
                 item.setTextAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft)
-                if col == 5 and kb_color is not None:
-                    item.setForeground(QBrush(kb_color))
                 self.setItem(rowIndex, col, item)
+
+            self.setCellWidget(rowIndex, 5, SpecBadgesWidget(specs))

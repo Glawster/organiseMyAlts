@@ -1,5 +1,12 @@
 from src.mainWindow import MainWindow
-from src.widgets.characterOverviewPanel import CLASS_SPECS, COLUMNS, CharacterOverviewPanel
+from src.widgets.characterOverviewPanel import CLASS_SPECS, COLUMNS, CharacterOverviewPanel, SpecBadgesWidget
+
+
+def _badge_info(panel, row, col=5):
+    """Returns list of (abbrev, scanned) from the SpecBadgesWidget at (row, col)."""
+    widget = panel.cellWidget(row, col)
+    assert widget is not None, f"No SpecBadgesWidget at ({row}, {col})"
+    return [(abbrev, scanned) for abbrev, scanned, _ in widget.labels]
 
 
 # ---------------------------------------------------------------------------
@@ -95,7 +102,7 @@ def testCharacterOverviewPanelIlvlColumn(qtbot):
 
 
 def testCharacterOverviewPanelKbSpecsPartiallyScanned(qtbot):
-    """Hunter with only Marksmanship scanned shows +Mar alongside -Bea and -Sur."""
+    """Hunter with only Marksmanship scanned: Bea=red, Mar=green, Sur=red."""
     panel = CharacterOverviewPanel()
     qtbot.addWidget(panel)
 
@@ -104,11 +111,11 @@ def testCharacterOverviewPanelKbSpecsPartiallyScanned(qtbot):
          "ilvl": "625", "scannedSpecs": ["Marksmanship"], "lastScan": "04-17 21:10"},
     ])
 
-    assert panel.item(0, 5).text() == "-Bea +Mar -Sur"
+    assert _badge_info(panel, 0) == [("Bea", False), ("Mar", True), ("Sur", False)]
 
 
 def testCharacterOverviewPanelKbSpecsNoneScanned(qtbot):
-    """Mage with no specs scanned shows all specs prefixed with '-'."""
+    """Mage with no specs scanned: all three badges red."""
     panel = CharacterOverviewPanel()
     qtbot.addWidget(panel)
 
@@ -117,11 +124,11 @@ def testCharacterOverviewPanelKbSpecsNoneScanned(qtbot):
          "ilvl": "598", "scannedSpecs": [], "lastScan": "04-16 23:03"},
     ])
 
-    assert panel.item(0, 5).text() == "-Arc -Fir -Fro"
+    assert _badge_info(panel, 0) == [("Arc", False), ("Fir", False), ("Fro", False)]
 
 
 def testCharacterOverviewPanelKbSpecsAllScanned(qtbot):
-    """Paladin with all specs scanned shows all specs prefixed with '+'."""
+    """Paladin with all specs scanned: all three badges green."""
     panel = CharacterOverviewPanel()
     qtbot.addWidget(panel)
 
@@ -131,11 +138,41 @@ def testCharacterOverviewPanelKbSpecsAllScanned(qtbot):
          "lastScan": "04-18 10:00"},
     ])
 
-    assert panel.item(0, 5).text() == "+Hol +Pro +Ret"
+    assert _badge_info(panel, 0) == [("Hol", True), ("Pro", True), ("Ret", True)]
+
+
+def testCharacterOverviewPanelKbSpecsScannedBadgeIsGreen(qtbot):
+    """A scanned spec badge must use SCANNED_COLOR as its background."""
+    panel = CharacterOverviewPanel()
+    qtbot.addWidget(panel)
+
+    panel.loadRows([
+        {"name": "Menion", "class": "HUNTER", "spec": "Marksmanship", "level": 70,
+         "ilvl": "625", "scannedSpecs": ["Marksmanship"], "lastScan": "04-17 21:10"},
+    ])
+
+    widget = panel.cellWidget(0, 5)
+    _, _, mar_label = widget.labels[1]  # Marksmanship is index 1 for HUNTER
+    assert SpecBadgesWidget.SCANNED_COLOR in mar_label.styleSheet()
+
+
+def testCharacterOverviewPanelKbSpecsUnscannedBadgeIsRed(qtbot):
+    """An unscanned spec badge must use UNSCANNED_COLOR as its background."""
+    panel = CharacterOverviewPanel()
+    qtbot.addWidget(panel)
+
+    panel.loadRows([
+        {"name": "Menion", "class": "HUNTER", "spec": "Marksmanship", "level": 70,
+         "ilvl": "625", "scannedSpecs": ["Marksmanship"], "lastScan": "04-17 21:10"},
+    ])
+
+    widget = panel.cellWidget(0, 5)
+    _, _, bea_label = widget.labels[0]  # Beast Mastery is index 0 — not scanned
+    assert SpecBadgesWidget.UNSCANNED_COLOR in bea_label.styleSheet()
 
 
 def testCharacterOverviewPanelKbSpecsUnknownClass(qtbot):
-    """A row with an unrecognised class shows '[?]' in the KB Specs column."""
+    """An unrecognised class renders a single red '?' badge."""
     panel = CharacterOverviewPanel()
     qtbot.addWidget(panel)
 
@@ -144,7 +181,7 @@ def testCharacterOverviewPanelKbSpecsUnknownClass(qtbot):
          "ilvl": "?", "scannedSpecs": [], "lastScan": "---"},
     ])
 
-    assert panel.item(0, 5).text() == "[?]"
+    assert _badge_info(panel, 0) == [("?", False)]
 
 
 def testCharacterOverviewPanelLastScanColumn(qtbot):
@@ -228,13 +265,13 @@ def testCharacterOverviewPanelFixtureMenionKbSpecs(qtbot):
     qtbot.addWidget(window)
 
     panel = window.characterOverviewPanel
-    assert panel.item(0, 5).text() == "-Bea +Mar -Sur"
+    assert _badge_info(panel, 0) == [("Bea", False), ("Mar", True), ("Sur", False)]
 
 
 def testCharacterOverviewPanelFixtureCrafterKbSpecs(qtbot):
-    """Crafter (MAGE, no specs scanned) shows all specs as missing."""
+    """Crafter (MAGE, no specs scanned) shows all specs as unscanned badges."""
     window = MainWindow()
     qtbot.addWidget(window)
 
     panel = window.characterOverviewPanel
-    assert panel.item(1, 5).text() == "-Arc -Fir -Fro"
+    assert _badge_info(panel, 1) == [("Arc", False), ("Fir", False), ("Fro", False)]
