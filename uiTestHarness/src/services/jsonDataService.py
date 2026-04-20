@@ -41,7 +41,7 @@ class JsonDataService:
                 "spec": char.get("spec", "?"),
                 "level": char.get("level", 0),
                 "ilvl": str(ilvl) if ilvl else "?",
-                "keybindScanned": char.get("keybindScanned", False),
+                "scannedSpecs": char.get("scannedSpecs", []),
                 "lastScan": char.get("lastScan", "---"),
             })
 

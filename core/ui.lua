@@ -5,7 +5,7 @@ local FRAME_WIDTH         = 860
 local FRAME_HEIGHT        = 400
 local CONTENT_LEFT        = 14
 local COL_HDR_Y           = -36
-local ROW_START_Y         = -56
+local ROW_START_Y         = -62
 local ROW_HEIGHT          = 17
 local MAX_CHAR_ROWS       = 16
 
@@ -100,10 +100,10 @@ function oma:getLatestKeybindScanTs(characterKey)
     return latestTs
 end
 
--- Returns the first 4 characters of a spec name for compact display.
+-- Returns the first 3 characters of a spec name for compact display.
 local function specAbbrev(name)
     if not name or name == "" then return "?" end
-    return name:sub(1, 4)
+    return name:sub(1, 3)
 end
 
 -- Returns a sorted list of unique spec names that have at least one snapshot
@@ -120,25 +120,6 @@ function oma:getScannedSpecNamesForCharacter(characterKey)
     end
     table.sort(list)
     return list
-end
-
-
--- Returns a sorted list of spec names for the character's class that have NOT
--- yet had a keybind snapshot captured.
-function oma:getMissingSpecNamesForCharacter(characterKey, className)
-    local allSpecs = CLASS_SPECS[className] or {}
-    local scanned = self:getScannedSpecNamesForCharacter(characterKey)
-    local scannedSet = {}
-    for _, name in ipairs(scanned) do
-        scannedSet[name] = true
-    end
-    local missing = {}
-    for _, name in ipairs(allSpecs) do
-        if not scannedSet[name] then
-            table.insert(missing, name)
-        end
-    end
-    return missing
 end
 
 function oma:getKeybindSnapshotScanStatus(characterKey, specID, talentLoadoutID)
@@ -178,7 +159,6 @@ function oma:getCharacterStatusRows()
             lastLogin        = char.lastLogin or 0,
             keybindTs        = latestScanTs,
             scannedSpecNames = self:getScannedSpecNamesForCharacter(key),
-            missingSpecNames = self:getMissingSpecNamesForCharacter(key, charClass),
         })
     end
 
@@ -244,7 +224,7 @@ function oma:ensureKeybindStatusFrame()
     frame.divider = frame:CreateTexture(nil, "ARTWORK")
     frame.divider:SetColorTexture(0.4, 0.4, 0.4, 0.6)
     frame.divider:SetSize(FRAME_WIDTH - 30, 1)
-    frame.divider:SetPoint("TOPLEFT", frame, "TOPLEFT", CONTENT_LEFT, COL_HDR_Y - 2)
+    frame.divider:SetPoint("TOPLEFT", frame, "TOPLEFT", CONTENT_LEFT, COL_HDR_Y - 16)
 
     -- Column header cells
     frame.colHeaders = createRowCells(frame, COL_HDR_Y, "GameFontHighlightSmall")
@@ -269,22 +249,6 @@ function oma:ensureKeybindStatusFrame()
     frame.emptyLabel:SetText("No characters tracked yet. Log in to each character and run /oma scan.")
     frame.emptyLabel:Hide()
 
-    -- Toggle button: switches KB Specs column between scanned and missing specs.
-    local btn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
-    btn:SetSize(120, 22)
-    btn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -30, -6)
-    btn:SetText("Show Missing")
-    btn:SetScript("OnClick", function()
-        frame.showMissing = not frame.showMissing
-        if frame.showMissing then
-            btn:SetText("Show Scanned")
-        else
-            btn:SetText("Show Missing")
-        end
-        oma:refreshKeybindStatusUI()
-    end)
-    frame.specToggleBtn = btn
-
     -- Register with the game engine so Escape closes the frame automatically.
     table.insert(UISpecialFrames, "organiseMyAltsKeybindStatusFrame")
 
@@ -302,10 +266,7 @@ function oma:refreshKeybindStatusUI()
     -- Populate data rows
     local rows = self:getCharacterStatusRows()
     local hasData = #rows > 0
-    local showMissing = frame.showMissing
-
     frame.emptyLabel:SetShown(not hasData)
-    frame.colHeaders.scanned:SetText(showMissing and "KB Missing" or "KB Specs")
 
     for i = 1, MAX_CHAR_ROWS do
         local cells = frame.charRows[i]
@@ -313,29 +274,20 @@ function oma:refreshKeybindStatusUI()
 
         if row then
             local isCurrent = row.characterKey == currentKey
-            local specNames = showMissing and (row.missingSpecNames or {}) or (row.scannedSpecNames or {})
-            local kbText
-            if showMissing then
-                if #specNames == 0 then
-                    kbText = "|cff00ff00none|r"
+            local allSpecs = CLASS_SPECS[row.class] or {}
+            local scannedSet = {}
+            for _, name in ipairs(row.scannedSpecNames) do
+                scannedSet[name] = true
+            end
+            local parts = {}
+            for _, name in ipairs(allSpecs) do
+                if scannedSet[name] then
+                    table.insert(parts, "|cff00ff00[" .. specAbbrev(name) .. "]|r")
                 else
-                    local parts = {}
-                    for _, name in ipairs(specNames) do
-                        table.insert(parts, specAbbrev(name))
-                    end
-                    kbText = "|cffff4444" .. table.concat(parts, "/") .. "|r"
-                end
-            else
-                if #specNames == 0 then
-                    kbText = "|cffff4444------|r"
-                else
-                    local parts = {}
-                    for _, name in ipairs(specNames) do
-                        table.insert(parts, specAbbrev(name))
-                    end
-                    kbText = "|cff00ff00" .. table.concat(parts, "/") .. "|r"
+                    table.insert(parts, "|cffff4444[" .. specAbbrev(name) .. "]|r")
                 end
             end
+            local kbText = #parts > 0 and table.concat(parts, " ") or "|cff888888[?]|r"
             local lastScanText = row.lastScan and row.lastScan > 0 and formatTimestamp(row.lastScan) or "---"
 
             cells.char:SetText(row.name or row.characterKey)
