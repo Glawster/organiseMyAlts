@@ -8,6 +8,7 @@
       "ilvl": 625,
       "lastScan": "04-17 21:10",
       "keybindScanned": true,
+      "scannedSpecs": ["Marksmanship"],
       "weekly": {
         "delve": false,
         "worldBoss": true
@@ -21,6 +22,7 @@
       "ilvl": 598,
       "lastScan": "04-16 23:03",
       "keybindScanned": false,
+      "scannedSpecs": [],
       "weekly": {
         "delve": true,
         "worldBoss": false
