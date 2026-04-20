@@ -5,6 +5,7 @@ local oma = organiseMyAlts
 
 oma.name = addonName
 oma.version = "0.2.2"
+oma.keybindDefaultMaxSnapshots = 120
 
 oma.eventFrame = CreateFrame("Frame")
 oma.lastNextTaskIds = {}
@@ -31,6 +32,11 @@ function oma:ADDON_LOADED(name)
     organiseMyAltsDB.resets = organiseMyAltsDB.resets or {}
     organiseMyAltsDB.warband = organiseMyAltsDB.warband or {}
     organiseMyAltsDB.layouts = organiseMyAltsDB.layouts or {}
+    organiseMyAltsDB.keybinds = organiseMyAltsDB.keybinds or {}
+    local keybindsDB = organiseMyAltsDB.keybinds
+    keybindsDB.snapshots = keybindsDB.snapshots or {}
+    keybindsDB.classificationOverrides = keybindsDB.classificationOverrides or {}
+    keybindsDB.maxSnapshots = keybindsDB.maxSnapshots or self.keybindDefaultMaxSnapshots
     organiseMyAltsDB.settings = organiseMyAltsDB.settings or {}
     organiseMyAltsDB.uiState = organiseMyAltsDB.uiState or {}
 
@@ -53,6 +59,12 @@ end
 
 function oma:PLAYER_ENTERING_WORLD()
     self:registerCharacter()
+end
+
+function oma:refreshKeybindStatusUIIfVisible()
+    if self.keybindStatusFrame and self.keybindStatusFrame:IsShown() and self.refreshKeybindStatusUI then
+        self:refreshKeybindStatusUI()
+    end
 end
 
 SLASH_ORGANISEMYALTS1 = "/oma"
@@ -78,6 +90,8 @@ function oma:printHelp()
 
     self:print("/oma alts      - show alt rankings")
     self:print("/oma best      - best alt to play")
+    self:print("/oma keybinds  - capture + show keybind consensus")
+    self:print("/oma ui        - toggle keybind scan status panel")
 
     self:print("/oma debug     - toggle debug logging")
     self:print("/oma logs      - show recent logs")
@@ -108,6 +122,7 @@ function oma:handleSlash(msg)
 
     elseif command == "scan" then
         self:scanCurrentCharacter()
+        self:refreshKeybindStatusUIIfVisible()
         self:printCurrentCharacterSummary()
 
     elseif command == "done" then
@@ -135,6 +150,14 @@ function oma:handleSlash(msg)
     
     elseif command == "best" then
         self:printBestAlt()
+    
+    elseif command == "keybinds" then
+        self:captureKeybindingSnapshot()
+        self:printKeybindRecommendations()
+        self:refreshKeybindStatusUIIfVisible()
+
+    elseif command == "ui" then
+        self:toggleKeybindStatusUI()
 
     elseif command == "debug" then
         self.db.settings.debug = not self.db.settings.debug
