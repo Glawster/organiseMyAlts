@@ -200,7 +200,7 @@ local function createSpecBadgeRow(frame, yOffset)
     for i = 1, MAX_BADGES do
         local xOff = COL.scanned + (i - 1) * (BADGE_WIDTH + BADGE_GAP)
 
-        local bg = frame:CreateTexture(nil, "BACKGROUND")
+        local bg = frame:CreateTexture(nil, "ARTWORK")
         bg:SetSize(BADGE_WIDTH, BADGE_HEIGHT)
         bg:SetPoint("TOPLEFT", frame, "TOPLEFT", xOff, yOffset)
         bg:SetColorTexture(0, 0, 0, 0)
