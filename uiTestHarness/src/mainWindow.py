@@ -28,6 +28,9 @@ class MainWindow(QMainWindow):
         self.dataService = JsonDataService(fixturePath)
         self.dataService.load()
 
+        self.resize(1480, 900)
+        self.setMinimumSize(1480, 900)
+
         self._buildUi()
         self._loadData()
         self._connectSignals()
@@ -54,8 +57,11 @@ class MainWindow(QMainWindow):
         buttonLayout.setContentsMargins(0, 0, 0, 0)
         self.showFindingsButton = QPushButton("Show Findings")
         self.showFindingsButton.setObjectName("showFindingsButton")
+        self.exitButton = QPushButton("Exit")
+        self.exitButton.setObjectName("exitButton")
         buttonLayout.addStretch()
         buttonLayout.addWidget(self.showFindingsButton)
+        buttonLayout.addWidget(self.exitButton)
         buttonRow.setLayout(buttonLayout)
 
         outerLayout.addWidget(topRow)
@@ -74,6 +80,7 @@ class MainWindow(QMainWindow):
     def _connectSignals(self):
         self.characterList.currentRowChanged.connect(self._onCharacterSelected)
         self.showFindingsButton.clicked.connect(self._showFindings)
+        self.exitButton.clicked.connect(self.close)
 
     def _onCharacterSelected(self, index):
         if index < 0:
@@ -85,8 +92,14 @@ class MainWindow(QMainWindow):
 
     def _showFindings(self):
         if self.findingsWindow is None:
-            self.findingsWindow = FindingsWindow()
+            self.findingsWindow = FindingsWindow(onCloseCallback=self._restoreMainWindow)
 
+        self.hide()
         self.findingsWindow.show()
         self.findingsWindow.raise_()
         self.findingsWindow.activateWindow()
+
+    def _restoreMainWindow(self):
+        self.show()
+        self.raise_()
+        self.activateWindow()

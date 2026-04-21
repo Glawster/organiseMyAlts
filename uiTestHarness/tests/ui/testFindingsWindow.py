@@ -30,7 +30,7 @@ def testKeyboardDiagramShowsFullRowsIncludingEmptyKeys(qtbot):
     window = FindingsWindow()
     qtbot.addWidget(window)
 
-    for keyName in ["F1", "F12", "`", "=", "Q", "P", "A", "L", "Z", "/", "SPACE"]:
+    for keyName in ["F1", "F12", "`", "=", "Q", "P", "A", "L", "\\", "Z", "/", "SPACE"]:
         assert keyName in window.keyboardDiagram.keyCaps
 
     assert window.keyboardDiagram.keyCaps["1"].roleLabel.text() == ""
@@ -66,3 +66,57 @@ def testKeyboardDiagramCanResetToDefaults(qtbot):
 
     assert window.keyboardDiagram.getKeyRole("`") == "utility"
     assert window.keyboardDiagram.keyCaps["`"].roleLabel.text() == "Utility"
+
+
+def testFindingsWindowCallsCloseCallback(qtbot):
+    called = {"value": False}
+
+    def onClose():
+        called["value"] = True
+
+    window = FindingsWindow(onCloseCallback=onClose)
+    qtbot.addWidget(window)
+    window.show()
+    window.close()
+
+    assert called["value"] is True
+
+
+def testKeyboardDiagramUsesTrueSpacersForAlignment(qtbot):
+    window = FindingsWindow()
+    qtbot.addWidget(window)
+
+    assert "\\" in window.keyboardDiagram.keyCaps
+
+    functionSpacer = window.keyboardDiagram.grid.itemAtPosition(0, 0).widget()
+    qRowSpacer = window.keyboardDiagram.grid.itemAtPosition(2, 0).widget()
+    aRowSpacer = window.keyboardDiagram.grid.itemAtPosition(3, 0).widget()
+
+    assert functionSpacer.objectName() == "spacer_0_0"
+    assert qRowSpacer.objectName() == "spacer_2_0"
+    assert aRowSpacer.objectName() == "spacer_3_0"
+
+    assert window.keyboardDiagram.grid.itemAtPosition(4, 0).widget() is window.keyboardDiagram.keyCaps["\\"]
+    assert window.keyboardDiagram.grid.itemAtPosition(0, 1).widget() is window.keyboardDiagram.keyCaps["F1"]
+    assert window.keyboardDiagram.grid.itemAtPosition(1, 1).widget() is window.keyboardDiagram.keyCaps["1"]
+    assert window.keyboardDiagram.grid.itemAtPosition(2, 1).widget() is window.keyboardDiagram.keyCaps["Q"]
+    assert window.keyboardDiagram.grid.itemAtPosition(3, 1).widget() is window.keyboardDiagram.keyCaps["A"]
+    assert window.keyboardDiagram.grid.itemAtPosition(4, 1).widget() is window.keyboardDiagram.keyCaps["Z"]
+
+
+def testFindingsWindowStartsWideEnough(qtbot):
+    window = FindingsWindow()
+    qtbot.addWidget(window)
+
+    assert window.minimumWidth() >= 1360
+    assert window.minimumHeight() >= 760
+
+
+def testSpacebarSpansFiveKeyboardColumns(qtbot):
+    window = FindingsWindow()
+    qtbot.addWidget(window)
+
+    spaceItem = window.keyboardDiagram.grid.itemAtPosition(5, 2)
+
+    assert spaceItem.widget() is window.keyboardDiagram.keyCaps["SPACE"]
+    assert spaceItem.columnSpan() == 5

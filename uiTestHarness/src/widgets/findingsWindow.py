@@ -1,4 +1,5 @@
 from PySide6.QtCore import QPoint, Qt
+from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import (
     QFrame,
     QGridLayout,
@@ -10,13 +11,17 @@ from PySide6.QtWidgets import (
 )
 
 
+SPACER = None
+KEY_UNIT_WIDTH = 64
+KEY_HEIGHT = 52
+
 KEY_ROWS = [
-    ["F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12"],
-    ["`", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "="],
-    ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "[", "]"],
-    ["A", "S", "D", "F", "G", "H", "J", "K", "L", ";", "'"],
-    ["Z", "X", "C", "V", "B", "N", "M", ",", ".", "/"],
-    ["CTRL", "ALT", "SPACE", "ALT_R", "CTRL_R"],
+    [(SPACER, 1), ("F1", 1), ("F2", 1), ("F3", 1), ("F4", 1), ("F5", 1), ("F6", 1), ("F7", 1), ("F8", 1), ("F9", 1), ("F10", 1), ("F11", 1), ("F12", 1)],
+    [("`", 1), ("1", 1), ("2", 1), ("3", 1), ("4", 1), ("5", 1), ("6", 1), ("7", 1), ("8", 1), ("9", 1), ("0", 1), ("-", 1), ("=", 1)],
+    [(SPACER, 1), ("Q", 1), ("W", 1), ("E", 1), ("R", 1), ("T", 1), ("Y", 1), ("U", 1), ("I", 1), ("O", 1), ("P", 1), ("[", 1), ("]", 1)],
+    [(SPACER, 1), ("A", 1), ("S", 1), ("D", 1), ("F", 1), ("G", 1), ("H", 1), ("J", 1), ("K", 1), ("L", 1), (";", 1), ("'", 1)],
+    [("\\", 1), ("Z", 1), ("X", 1), ("C", 1), ("V", 1), ("B", 1), ("N", 1), ("M", 1), (",", 1), (".", 1), ("/", 1)],
+    [("CTRL", 1), ("ALT", 1), ("SPACE", 5), ("ALT_R", 1), ("CTRL_R", 1)],
 ]
 
 ROLE_ORDER = [
@@ -69,6 +74,7 @@ DISPLAY_LABELS = {
     "SPACE": "Space",
     "ALT_R": "Alt",
     "CTRL_R": "Ctrl",
+    "\\": "\\",
 }
 
 ROLE_LABELS = {
@@ -101,6 +107,7 @@ class KeyCap(QFrame):
             .replace("]", "rbracket")
             .replace("=", "equals")
             .replace("-", "dash")
+            .replace("\\", "backslash")
         )
         self.setObjectName(f"keyCap_{safeName}")
         self.setFrameShape(QFrame.Shape.StyledPanel)
@@ -123,11 +130,7 @@ class KeyCap(QFrame):
         layout.addWidget(self.roleLabel)
         self.setLayout(layout)
 
-        if keyText == "SPACE":
-            self.setMinimumSize(160, 52)
-        else:
-            self.setMinimumSize(64, 52)
-
+        self.setMinimumSize(KEY_UNIT_WIDTH, KEY_HEIGHT)
         self.setRole(role)
 
     def setRole(self, role):
@@ -146,7 +149,9 @@ class KeyCap(QFrame):
             action = assignMenu.addAction(role.title())
             action.setCheckable(True)
             action.setChecked(self.role == role)
-            action.triggered.connect(lambda checked=False, selectedRole=role: self.roleChangedCallback(self.keyText, selectedRole))
+            action.triggered.connect(
+                lambda checked=False, selectedRole=role: self.roleChangedCallback(self.keyText, selectedRole)
+            )
 
         menu.addSeparator()
 
@@ -154,7 +159,9 @@ class KeyCap(QFrame):
         clearAction.triggered.connect(lambda: self.roleChangedCallback(self.keyText, "neutral"))
 
         resetAction = menu.addAction("Reset Key To Default")
-        resetAction.triggered.connect(lambda: self.roleChangedCallback(self.keyText, DEFAULT_KEY_ROLES.get(self.keyText, "neutral")))
+        resetAction.triggered.connect(
+            lambda: self.roleChangedCallback(self.keyText, DEFAULT_KEY_ROLES.get(self.keyText, "neutral"))
+        )
 
         menu.exec(self.mapToGlobal(position))
 
@@ -165,6 +172,7 @@ class KeyboardDiagram(QWidget):
         self.setObjectName("keyboardDiagram")
         self.keyRoles = DEFAULT_KEY_ROLES.copy()
         self.keyCaps = {}
+        self.spacerWidgets = []
 
         layout = QVBoxLayout()
         layout.setSpacing(10)
@@ -179,21 +187,29 @@ class KeyboardDiagram(QWidget):
         subtitle.setObjectName("keyboardDiagramSubtitle")
 
         gridHost = QWidget()
-        grid = QGridLayout()
-        grid.setHorizontalSpacing(8)
-        grid.setVerticalSpacing(8)
-        gridHost.setLayout(grid)
+        self.grid = QGridLayout()
+        self.grid.setHorizontalSpacing(8)
+        self.grid.setVerticalSpacing(8)
+        gridHost.setLayout(self.grid)
 
         for rowIndex, row in enumerate(KEY_ROWS):
-            for colIndex, keyText in enumerate(row):
+            columnIndex = 0
+            for keyText, span in row:
+                if keyText is SPACER:
+                    spacer = QWidget()
+                    spacer.setObjectName(f"spacer_{rowIndex}_{columnIndex}")
+                    spacer.setFixedSize(KEY_UNIT_WIDTH * span, KEY_HEIGHT)
+                    spacer.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+                    self.spacerWidgets.append(spacer)
+                    self.grid.addWidget(spacer, rowIndex, columnIndex, 1, span)
+                    columnIndex += span
+                    continue
+
                 role = self.keyRoles.get(keyText, "neutral")
                 keyCap = KeyCap(keyText, role, self.setKeyRole)
                 self.keyCaps[keyText] = keyCap
-
-                if keyText == "SPACE":
-                    grid.addWidget(keyCap, rowIndex, colIndex, 1, 2)
-                else:
-                    grid.addWidget(keyCap, rowIndex, colIndex)
+                self.grid.addWidget(keyCap, rowIndex, columnIndex, 1, span)
+                columnIndex += span
 
         legend = QWidget()
         legendLayout = QHBoxLayout()
@@ -239,11 +255,13 @@ class KeyboardDiagram(QWidget):
 
 
 class FindingsWindow(QWidget):
-    def __init__(self):
+    def __init__(self, onCloseCallback=None):
         super().__init__()
+        self.onCloseCallback = onCloseCallback
         self.setObjectName("findingsWindow")
         self.setWindowTitle("OrganiseMyAlts Findings")
-        self.resize(1080, 520)
+        self.resize(1360, 760)
+        self.setMinimumSize(1360, 760)
 
         layout = QVBoxLayout()
         layout.setContentsMargins(12, 12, 12, 12)
@@ -264,3 +282,8 @@ class FindingsWindow(QWidget):
         layout.addWidget(summary)
         layout.addWidget(self.keyboardDiagram)
         self.setLayout(layout)
+
+    def closeEvent(self, event: QCloseEvent):
+        if self.onCloseCallback is not None:
+            self.onCloseCallback()
+        super().closeEvent(event)

@@ -36,3 +36,42 @@ def testShowFindingsButtonOpensFindingsWindow(qtbot):
     assert window.findingsWindow is not None
     assert window.findingsWindow.isVisible()
     assert window.findingsWindow.windowTitle() == "OrganiseMyAlts Findings"
+
+
+def testMainWindowHasExitButton(qtbot):
+    window = MainWindow()
+    qtbot.addWidget(window)
+
+    assert window.exitButton.text() == "Exit"
+
+
+def testShowFindingsHidesMainWindow(qtbot):
+    window = MainWindow()
+    qtbot.addWidget(window)
+    window.show()
+
+    window.showFindingsButton.click()
+
+    assert not window.isVisible()
+    assert window.findingsWindow is not None
+    assert window.findingsWindow.isVisible()
+
+
+def testClosingFindingsRestoresMainWindow(qtbot):
+    window = MainWindow()
+    qtbot.addWidget(window)
+    window.show()
+
+    window.showFindingsButton.click()
+    window.findingsWindow.close()
+
+    assert window.isVisible()
+    assert not window.findingsWindow.isVisible()
+
+
+def testMainWindowStartsWideEnough(qtbot):
+    window = MainWindow()
+    qtbot.addWidget(window)
+
+    assert window.minimumWidth() >= 1480
+    assert window.minimumHeight() >= 900
