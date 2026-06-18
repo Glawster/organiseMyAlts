@@ -23,10 +23,16 @@ This feature aims to standardise keybindings so that:
 
 Preferred key layout:
 
-- Main keys: 1, 2, 3, 4, 5
-- Function keys: F1, F2, F3, F4
-- Utility keys: Q, E, R, T, Y
-- Special: 1 used for single-button assist
+- Strafe Mode assumes the player may hold strafe on `D` while using right mouse button for facing.
+- `1` is used for single-button assist / spam.
+- `2` is used for self-heal or sustain, such as Death Strike.
+- `3`, `4`, `5`, `6`, `F1`, and `F2` are reachable rotation keys.
+- `Q`, `E`, `R`, `T`, `Y`, and `U` are offensive keys.
+- `F3` is the interrupt key.
+- `F5`, `F6`, and `F7` are defensive keys.
+- `F8` is movement.
+- Backtick is utility.
+- `H`, `J`, `K`, and `L` are reserved/system keys.
 
 ---
 
@@ -95,13 +101,15 @@ Examples:
 ### 3. Ability Classification System
 Introduce a classification layer:
 
-- builder
-- spender
+- assist
+- rotation
+- self-heal / sustain
 - interrupt
 - defensive
 - movement
-- cooldown
+- offensive
 - utility
+- system
 
 Each category maps to a preferred key.
 
@@ -159,16 +167,17 @@ The panel refreshes automatically when `/oma scan` or `/oma keybinds` runs while
 
 ## Example Mapping
 
-| Category  | Suggested Key |
-|-----------|---------------|
-| Assist    | 1             |
-| Builder   | 2–3           |
-| Spender   | 4–5           |
-| Interrupt | R / backtick    |
-| Defensive | E             |
-| Movement  | Q             |
-| Cooldown  | T / Y         |
-| Utility   | F1–F4         |
+| Category | Suggested Key |
+| --- | --- |
+| Assist | 1 |
+| Self-heal / sustain | 2 |
+| Rotation | 3 / 4 / 5 / 6 / F1 / F2 |
+| Offensive | Q / E / R / T / Y / U |
+| Interrupt | F3 |
+| Defensive | F5 / F6 / F7 |
+| Movement | F8 |
+| Utility | backtick |
+| System / reserved | H / J / K / L |
 
 ---
 

@@ -28,8 +28,8 @@ class MainWindow(QMainWindow):
         self.dataService = JsonDataService(fixturePath)
         self.dataService.load()
 
-        self.resize(1480, 900)
-        self.setMinimumSize(1480, 900)
+        self.resize(1660, 980)
+        self.setMinimumSize(1660, 980)
 
         self._buildUi()
         self._loadData()
@@ -92,7 +92,7 @@ class MainWindow(QMainWindow):
 
     def _showFindings(self):
         if self.findingsWindow is None:
-            self.findingsWindow = FindingsWindow(onCloseCallback=self._restoreMainWindow)
+            self.findingsWindow = FindingsWindow(characters=self.characters, onCloseCallback=self._restoreMainWindow)
 
         self.hide()
         self.findingsWindow.show()

@@ -55,7 +55,7 @@ Use colour to represent state:
 
 - Hover → show tooltip:
   - spell name
-  - category
+  - spell category, such as rotation, self-heal, defensive, or interrupt
   - consensus key
   - confidence
 - Click (future):

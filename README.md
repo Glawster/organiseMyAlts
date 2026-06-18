@@ -46,6 +46,12 @@ It:
 * keybind snapshot capture + consensus suggestions
 * character overview panel (`/oma ui`) with column table showing all alts, scan status, and item level
 
+## How To Use It
+
+Start with the practical user guide:
+
+* [How To Use organiseMyAlts](documentation/how-to-use.md)
+
 ### Slash commands
 
 ```
@@ -225,19 +231,20 @@ Goal:
 Model:
 
 ```
-role → slot → keybind
+spell → classification → preferred key role → finding
 ```
 
-Categories:
+Current Strafe Mode prototype roles:
 
 * assist → 1
-* builder → 2 / 3
-* spender → 4 / 5
-* interrupt → R / `
-* defensive → E
-* movement → Q
-* cooldown → T / Y
-* utility → F1-F4
+* self-heal / sustain → 2
+* rotation → 3 / 4 / 5 / 6 / F1 / F2
+* offensive → Q / E / R / T / Y / U
+* interrupt → F3
+* defensive → F5 / F6 / F7
+* movement → F8
+* utility → `
+* system / reserved → H / J / K / L
 
 Current support:
 
@@ -246,6 +253,39 @@ Current support:
 * classify captured abilities (built-in + manual override support)
 * build layered consensus (character → class → account)
 * show recommendations with `/oma keybinds`
+* prototype consensus-aware Findings model in the Python UI harness
+
+---
+
+## In-Game Lua UI Direction
+
+The addon should have a simple in-game Lua UI for normal use.
+
+Slash commands remain available for expert users, debugging, macros, and fast command-line workflows, but the main player workflow should be available through buttons and panels.
+
+The planned Lua UI should expose the same actions as the slash commands:
+
+* character summary
+* character list
+* current character scan
+* keybind snapshot capture
+* keybind scan status
+* task list
+* next tasks
+* task complete / undo
+* daily and weekly task creation
+* alt rankings
+* best alt recommendation
+* logs and debug controls
+* Findings / keybind consistency view
+
+Initial UI goal:
+
+* one compact main window
+* clear action buttons for common commands
+* status area for command output
+* tabs or sections for Characters, Tasks, Keybinds, and Debug
+* slash commands preserved as the expert interface
 
 ---
 
@@ -289,59 +329,67 @@ organiseMyAltsDB = {
 
 # 🚀 Development Phases
 
-## Phase 1 — Foundation (current)
+## Phase 1 — Foundation And Command Coverage (current)
 
 * addon skeleton
+* saved variables
 * character tracking
+* character scan cache
 * reset handling
 * basic task system
+* slash commands for all core actions
 
 ---
 
-## Phase 2 — Task Engine
+## Phase 2 — Simple Lua Control Panel
+
+* build a compact in-game main window
+* expose existing slash-command actions as UI buttons
+* show command results in a status/output area
+* add sections for Characters, Tasks, Keybinds, and Debug
+* keep slash commands as expert shortcuts
+
+---
+
+## Phase 3 — Keybind Findings Foundation
+
+* port the Python findings model into Lua
+* add preferred key roles and Strafe Mode profile data
+* build Lua consensus helpers
+* compare captured bindings against preferred roles
+* display simple match/mismatch findings in the Lua UI
+
+---
+
+## Phase 4 — Keyboard Findings Window
+
+* port the keyboard diagram into WoW Frames
+* show key role colours
+* show current spell assignments
+* add tooltips with spell, role, category, consensus, and confidence
+* integrate with real `/oma keybinds` snapshots
+
+---
+
+## Phase 5 — Task And Alt Decision Engine
 
 * task templates
 * priorities
 * better next-action logic
-
-### Sub-phases
-
-* 2a: character scan cache
-* 2b: warband cache
-* 2c: upgrade matching
-
----
-
-## Phase 3 — Alt Decision Engine
-
 * alt scoring
 * best alt recommendation
 * account-wide optimisation
 
 ---
 
-## Phase 4 — UI Layer
+## Phase 6 — Recommendations And Polish
 
-* dashboard
-* alt overview
-* task panels
-* optional widget
-
----
-
-## Phase 5 — Layout Consistency
-
-* action bar tracking
-* keybind tracking
-* suggestion system
-
----
-
-## Phase 6 — Python Tooling
-
-* SavedVariables parsing
-* reports + analysis
-* upgrade recommendations
+* keybind consistency scoring
+* concrete keybind recommendations
+* spell classification management
+* import/export
+* SavedVariables parsing/reporting tools
+* optional Python reports and deeper analysis
 
 ---
 
@@ -364,11 +412,11 @@ organiseMyAlts/
 
 # 🧭 Roadmap (short-term)
 
-1. fix phase 1 loading + commands
-2. add character scan cache
-3. implement task templates
-4. add warband item tracking
-5. build alt scoring system
+1. build a simple Lua main window that exposes the existing slash-command workflows
+2. add reusable UI helpers for buttons, rows, section panels, and status output
+3. wire scan, keybind capture, task list, next task, alt ranking, and debug actions into the UI
+4. port the Python keybind findings model into Lua
+5. add the in-game Findings / keyboard view
 
 ---
 
